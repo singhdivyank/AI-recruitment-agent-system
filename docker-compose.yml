@@ -48,12 +48,21 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+      linkedin-mcp:
+        condition: service_healthy
+      naukri-mcp:
+        condition: service_healthy
+      ats-mcp:
+        condition: service_healthy
     volumes:
       - ./backend:/app
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-recruit}:${POSTGRES_PASSWORD:-recruitpass}@postgres:5432/recruitment
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redispass}@redis:6379/0
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - LINKEDIN_MCP_URL=http://linkedin-mcp:8001
+      - NAUKRI_MCP_URL=http://naukri-mcp:8002
+      - ATS_MCP_URL=http://ats-mcp:8003
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
@@ -71,6 +80,57 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
+
+  linkedin-mcp:
+    build:
+      context: ./mcp_servers
+      dockerfile: Dockerfile
+    container_name: recruitment_linkedin_mcp
+    environment:
+      - SERVER_MODULE=mcp_servers.linkedin.server
+      - PORT=8001
+      - HF_DATASET=InferenceEndpoint/json_resume_dataset
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/tools || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  naukri-mcp:
+    build:
+      context: ./mcp_servers
+      dockerfile: Dockerfile
+    container_name: recruitment_naukri_mcp
+    environment:
+      - SERVER_MODULE=mcp_servers.naukri.server
+      - PORT=8002
+      - HF_DATASET=InferenceEndpoint/json_resume_dataset
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8002/tools || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  ats-mcp:
+    build:
+      context: ./mcp_servers
+      dockerfile: Dockerfile
+    container_name: recruitment_ats_mcp
+    environment:
+      - SERVER_MODULE=mcp_servers.ats.server
+      - PORT=8003
+      - HF_DATASET=InferenceEndpoint/json_resume_dataset
+    ports:
+      - "8003:8003"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8003/tools || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
   prometheus:
     image: prom/prometheus:v2.51.0
@@ -138,6 +198,12 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     depends_on:
       elasticsearch:
+        condition: service_healthy
+      linkedin-mcp:
+        condition: service_healthy
+      naukri-mcp:
+        condition: service_healthy
+      ats-mcp:
         condition: service_healthy
 
 volumes:

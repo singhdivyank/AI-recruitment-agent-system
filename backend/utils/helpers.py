@@ -73,6 +73,23 @@ def create_top_pick_prompt(jd_parsed: Any, shortlist_text: str) -> str:
         {shortlist_text}
     """
 
+def create_screen_candidate(jd_parsed: Any, criteria: List, profile: Any) -> str:
+    criteria_text = "\n".join([
+            f"  - {c['name']} (weight={c['weight']})" for c in criteria
+        ])
+    
+    return f"""
+        Job: {jd_parsed.title} | Seniority: {jd_parsed.seniority_level}
+        Required YOE: {jd_parsed.years_experience.min}-{jd_parsed.years_experience.max}
+        Location: {jd_parsed.location}
+
+        Criteria to score:
+        {criteria_text}
+
+        Candidate Profile:
+        {profile}
+    """
+
 def get_skills(skills_raw: List) -> List:
     skills = []
     for s in skills_raw:

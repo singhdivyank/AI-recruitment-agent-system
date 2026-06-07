@@ -28,6 +28,7 @@ from backend.utils.prometheus_metrics import (
     LLM_LATENCY,
     TOOL_CALLS,
     TOOL_LATENCY,
+    TOOL_FAILURES,
     ACTIVE_WORKFLOWS,
 )
 
@@ -50,7 +51,6 @@ structlog.configure(
 logger = structlog.get_logger()
 
 def setup_tracing() -> None:
-    """OpenTelemetry setup"""
     resource = Resource.create({"service.name": settings.otel_service_name})
     provider = TracerProvider(resource=resource)
 
@@ -67,7 +67,6 @@ def get_tracer(name: str) -> trace.Tracer:
     return trace.get_tracer(name)
 
 def setup_prometheus(app) -> None:
-    """Prometheus instrumentor"""
     Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 def observe_agent(agent_name: str):
@@ -107,7 +106,6 @@ def observe_agent(agent_name: str):
         return wrapper
     return decorator
 
-
 def record_llm_usage(
     agent_name: str,
     model: str,
@@ -141,4 +139,8 @@ def record_tool_call(tool_name: str, latency_s: float, success: bool = True) -> 
     status = "success" if success else "error"
     TOOL_CALLS.labels(tool_name=tool_name, status=status).inc()
     TOOL_LATENCY.labels(tool_name=tool_name).observe(latency_s)
+
+    if status == "error":
+        TOOL_FAILURES.labels(tool_name=tool_name).inc()
+    
     logger.info("tool_call", tool=tool_name, latency_s=round(latency_s, 2), success=success)

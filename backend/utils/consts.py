@@ -48,3 +48,6 @@ INDEX_MAPPING = {
         "number_of_replicas": 0,
     },
 }
+
+CALL_TOOL_PATH = "/call_tool"
+LIST_TOOLS_PATH = "/tools"

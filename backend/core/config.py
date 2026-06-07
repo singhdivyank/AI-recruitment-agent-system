@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     grafana_password: str = ""
     embedding_model = "all-MiniLM-L6-v2"          # 384-dim, fast
     reranker_model = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    linkedin_mcp_url: str = ""
+    naukri_mcp_url: str = ""
+    ats_mcp_url: str = ""
 
     @model_validator(mode="after")
     def assemble_urls(self) -> "Settings":
@@ -58,8 +61,6 @@ class Settings(BaseSettings):
         if not self.redis_url:
             self.redis_url = f"redis://:{self.redis_password}@redis:6379/0"
         return self
-
-    # ─── Derived helpers ──────────────────────────────────────
 
     @property
     def cors_origins_list(self) -> List[str]:

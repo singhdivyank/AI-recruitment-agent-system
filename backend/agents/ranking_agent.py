@@ -72,6 +72,15 @@ class RankingAgent:
         """
         Decompose criterion scores into the formula components.
         Returns (final_score, breakdown_dict)
+
+        Spec formula:
+          final_score = 0.4 * skill_match
+                      + 0.2 * experience
+                      + 0.2 * semantic_similarity
+                      + 0.1 * location_fit
+                      + 0.1 * recruiter_preference   ← spec-defined
+
+        recruiter_score_overrides: criterion name → override score (HITL)
         """
 
         overrides = recruiter_score_overrides or {}
