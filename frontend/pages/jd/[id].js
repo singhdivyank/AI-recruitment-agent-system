@@ -1,12 +1,13 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import Link from "next/link";
-import { getJD, getShortlist, getAuditLog, closeJD } from "../../services/api";
+import { getJD, getShortlist, getAuditLog, closeJD, sendConversationMessage, getConversation } from "../../services/api";
 import StatusBadge from "../../components/dashboard/StatusBadge";
 import CandidateCard from "../../components/candidates/CandidateCard";
 
 export default function JDDetail() {
-  const router = useRouter();
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
   const { id } = router.query;
 
   const { data: jd, isLoading: jdLoading } = useSWR(
@@ -17,6 +18,11 @@ export default function JDDetail() {
   const { data: shortlistData, mutate: mutateShortlist } = useSWR(
     id && jd?.status === "SHORTLISTED" ? `shortlist-${id}` : null,
     () => getShortlist(id)
+  );
+  const { data: chatData, mutate: mutateChat } = useSWR(
+    id ? `chat-${id}` : null,
+    () => getConversation(id),
+    { refreshInterval: 5000 }
   );
   const { data: auditData } = useSWR(
     id ? `audit-${id}` : null,
@@ -29,6 +35,17 @@ export default function JDDetail() {
 
   const shortlist = shortlistData?.shortlist || [];
   const auditLog = auditData?.audit_log || [];
+
+  const sendChat = async () => {
+    if (!chatInput.trim()) return;
+    setChatLoading(true);
+    try {
+      await sendConversationMessage(id, chatInput);
+      setChatInput("");
+      mutateChat();
+    } catch {}
+    finally { setChatLoading(false); }
+  };
 
   const handleClose = async (candidateId, candidateName) => {
     if (!confirm(`Close JD and select ${candidateName}?`)) return;
@@ -140,6 +157,33 @@ export default function JDDetail() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Conversation / Refinement */}
+          <div className="card">
+            <h3 className="font-semibold mb-3">AI Conversation</h3>
+            <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
+              {(chatData?.conversation || []).map((msg, i) => (
+                <div key={i} className={`text-xs p-2 rounded ${msg.role === "user" ? "bg-blue-50 text-blue-800" : "bg-gray-50 text-gray-700"}`}>
+                  <span className="font-semibold uppercase mr-1">{msg.role}:</span>{msg.content}
+                </div>
+              ))}
+              {(chatData?.conversation || []).length === 0 && (
+                <p className="text-xs text-gray-400">Ask a question about the candidates...</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <input
+                className="flex-1 border border-gray-200 rounded px-2 py-1 text-xs"
+                placeholder="e.g. Show me only remote candidates"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendChat()}
+              />
+              <button onClick={sendChat} disabled={chatLoading} className="btn-primary text-xs py-1 px-3">
+                {chatLoading ? "..." : "Send"}
+              </button>
+            </div>
           </div>
         </div>
 

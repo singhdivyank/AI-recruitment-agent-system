@@ -46,11 +46,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     volumes:
       - ./backend:/app
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-recruit}:${POSTGRES_PASSWORD:-recruitpass}@postgres:5432/recruitment
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redispass}@redis:6379/0
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
@@ -109,8 +112,37 @@ services:
     depends_on:
       - prometheus
 
+  elasticsearch:
+    image: elasticsearch:8.13.0
+    container_name: recruitment_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  kibana:
+    image: kibana:8.13.0
+    container_name: recruitment_kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   redis_data:
   prometheus_data:
   grafana_data:
+  elasticsearch_data:
