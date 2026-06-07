@@ -7,6 +7,7 @@ from __future__ import annotations
 import os
 import uuid
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 import structlog
@@ -24,8 +25,8 @@ from backend.core.schemas import (
     ConversationMessage, 
     JDCloseRequest, 
     JDCreate, 
-    ScoreOverrideRequest, 
-    WorkflowState, 
+    ScoreOverrideRequest,
+    WorkflowState,
     OutreachSendRequest
 )
 from backend.db.models import (
@@ -39,14 +40,16 @@ from backend.db.models import (
 from backend.db.session import get_db, init_db
 from backend.observability.telemetry import setup_prometheus, setup_tracing
 from backend.rag.pipeline import get_rag
-from backend.utils.helpers import _audit_to_dict, _candidate_to_dict, _jd_to_dict
+from backend.tools.mcp_client import check_all_servers
+from backend.utils.helpers import _audit_to_dict, _jd_to_dict, _candidate_to_dict
+from backend.utils.prompts import CONVERSATION_TURN_PROMPT
 from backend.workflows.orchestrator import OrchestratorAgent
 
 settings = get_settings()
 logger = structlog.get_logger()
 
 # Module-level Redis client
-_redis: aioredis.Redis
+_redis: Optional[aioredis.Redis] = None
 
 def get_redis() -> aioredis.Redis:
     return _redis
@@ -80,8 +83,12 @@ async def lifespan(app: FastAPI):
     logger.info("redis_connected")
 
     # Warm up RAG (loads models)
-    rag = get_rag()
+    _ = get_rag()
     logger.info("rag_warmed_up")
+
+    # Health-check all three MCP servers
+    mcp_status = await check_all_servers()
+    logger.info("mcp_servers_health", status=mcp_status)
 
     yield
 
@@ -388,15 +395,9 @@ async def add_conversation_turn(
     jd_result = await db.execute(select(JDModel).where(JDModel.jd_id == jd_id))
     jd = jd_result.scalar_one_or_none()
 
-    system_prompt = """You are a recruitment assistant helping a recruiter refine candidate search.
-You have access to a shortlist of candidates for a job description.
-Answer recruiter questions concisely. If they want to filter, suggest which candidates to review."""
-
-    user_prompt = f"JD: {jd.title if jd else jd_id}\n\nConversation:\n{history_text}\n\nRespond to the latest recruiter message."
-
     response = await llm.call_with_retry(
-        system_prompt=system_prompt,
-        user_prompt=user_prompt,
+        system_prompt=CONVERSATION_TURN_PROMPT,
+        user_prompt=f"JD: {jd.title if jd else jd_id}\n\nConversation:\n{history_text}\n\nRespond to the latest recruiter message.",
         agent_name="conversation_agent",
         jd_id=jd_id,
         use_flash=True,
@@ -439,7 +440,6 @@ async def send_outreach(
     db: AsyncSession = Depends(get_db),
 ):
     """Record that outreach was sent to a candidate (persists to outreach_history)."""
-    from datetime import datetime
     from sqlalchemy import select as _sel
 
     cand_result = await db.execute(
@@ -479,7 +479,6 @@ async def get_outreach_history(candidate_id: str, db: AsyncSession = Depends(get
         .where(OutreachHistoryModel.candidate_id == candidate_id)
         .order_by(OutreachHistoryModel.sent_at.desc())
     )
-    records = result.scalars().all()
     return {
         "candidate_id": candidate_id,
         "outreach_history": [
@@ -491,9 +490,8 @@ async def get_outreach_history(candidate_id: str, db: AsyncSession = Depends(get
                 "response_received": r.response_received,
                 "response_text": r.response_text,
             }
-            for r in records
+            for r in result.scalars().all()
         ],
     }
 
-# ── Evaluation Router ─────────────────────────────────────────
 app.include_router(eval_router)

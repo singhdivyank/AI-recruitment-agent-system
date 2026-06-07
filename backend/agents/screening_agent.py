@@ -13,6 +13,7 @@ Scoring criteria come from the parsed JD:
 """
 from __future__ import annotations
 import asyncio
+import time
 from typing import Any, Dict, List
 
 import structlog
@@ -26,6 +27,8 @@ from backend.core.schemas import (
 from backend.db.models import CandidateModel
 from backend.observability.telemetry import observe_agent
 from backend.rag.pipeline import RAGPipeline
+from backend.utils.helpers import create_screen_candidate
+from backend.utils.prometheus_metrics import SCREENING_DURATION, CANDIDATES_SCREENED
 from backend.utils.prompts import SCREENING_SYSTEM_PROMPT
 
 logger = structlog.get_logger()
@@ -46,7 +49,7 @@ class ScreeningAgent:
         if profile.location:
             parts.append(f"Location: {profile.location}")
         for emp in profile.employment_history[:5]:
-            desc = f"  - {emp.title} at {emp.company} ({emp.start_date}–{emp.end_date or 'Present'})"
+            desc = f"  - {emp.title} at {emp.company} ({emp.start_date}-{emp.end_date or 'Present'})"
             if emp.description:
                 desc += f": {emp.description[:200]}"
             parts.append(desc)
@@ -72,21 +75,11 @@ class ScreeningAgent:
         criteria: List[Dict],
         jd_id: str,
     ) -> ScreeningResult:
-        criteria_text = "\n".join([
-            f"  - {c['name']} (weight={c['weight']})" for c in criteria
-        ])
-
-        user_prompt = f"""
-Job: {jd_parsed.title} | Seniority: {jd_parsed.seniority_level}
-Required YOE: {jd_parsed.years_experience.min}–{jd_parsed.years_experience.max}
-Location: {jd_parsed.location}
-
-Criteria to score:
-{criteria_text}
-
-Candidate Profile:
-{self._build_profile_text(profile)}
-"""
+        user_prompt = create_screen_candidate(
+            jd_parsed=jd_parsed, 
+            criteria=criteria, 
+            profile=self._build_profile_text(profile)
+        )
         try:
             result = await self.llm.call_json(
                 system_prompt=SCREENING_SYSTEM_PROMPT,
@@ -97,8 +90,7 @@ Candidate Profile:
             )
 
             criterion_scores = []
-            total_weighted = 0.0
-            total_weight = 0.0
+            total_weighted, total_weight = 0.0, 0.0
             criterion_weights = {c["name"]: c["weight"] for c in criteria}
 
             for cs_dict in result.get("criterion_scores", []):
@@ -141,7 +133,7 @@ Candidate Profile:
     @observe_agent("screening_agent")
     async def run(self, state: WorkflowState) -> WorkflowState:
         jd_id = state.jd_id
-        jd_parsed: JDParsed = state.jd_parsed
+        jd_parsed = state.jd_parsed
         profiles = state.deduplicated_profiles
         log = logger.bind(agent="screening", jd_id=jd_id)
         log.info("start", candidates=len(profiles))
@@ -224,6 +216,8 @@ Candidate Profile:
             )
             self.db.add(candidate_model)
 
+        SCREENING_DURATION.observe(time.monotonic())  # approximate — full elapsed via observe_agent
+        CANDIDATES_SCREENED.labels(jd_id=jd_id).inc(len(screening_results))
         log.info("screening_complete", screened=len(screening_results))
         state.screening_results = screening_results
         state.step = "screened"

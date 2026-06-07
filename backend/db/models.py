@@ -89,7 +89,8 @@ class AuditModel(Base):
     selected_candidate_id = Column(String, nullable=True)
     candidate_name = Column(String(200), nullable=True)
     recruiter_id = Column(String(100))
-    action = Column(String(50))          # JD_CREATED, JD_CLOSED, CANDIDATE_REJECTED, SCORE_OVERRIDDEN, etc.
+    # JD_CREATED, JD_CLOSED, CANDIDATE_REJECTED, SCORE_OVERRIDDEN, etc.
+    action = Column(String(50))
     reason = Column(Text, nullable=True)
     ranking_snapshot = Column(JSON, nullable=True)
     metadata = Column(JSON, default=dict)
