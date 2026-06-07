@@ -238,20 +238,15 @@ recruitment-agent/
 │   │   ├── dashboard/        # StatusBadge, MetricsBar
 │   │   ├── jd/               # JDForm
 │   │   └── candidates/       # CandidateCard
-│   ├── configs/
-│   │   ├── next.config.js
-│   │   ├── postcss.config.js
-│   │   └── tailwind.config.js
-│   └── api.js                # All API calls
+│   └── services/api.js       # All API calls
 ├── monitoring/
-│   ├── dashboards.yml
-│   ├── datasources.yml
-│   ├── otel-config.yml
-│   └── prometheus.yml
+│   ├── prometheus/prometheus.yml
+│   ├── grafana/datasources.yml
+│   └── otel-config.yml
 ├── docs/
 │   ├── architecture.md       # Full system design + diagrams
 │   └── decisions.md          # Key design decisions + rationale
-├── init_db.sql
+├── scripts/init_db.sql
 ├── docker-compose.yml
 └── .env.example
 ```
