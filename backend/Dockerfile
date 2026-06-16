@@ -14,7 +14,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source
-COPY . .
+COPY . ./backend
 
 # Create non-root user
 RUN useradd -m appuser && chown -R appuser:appuser /app

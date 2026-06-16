@@ -28,6 +28,8 @@ mcp = fastmcp.FastMCP(
         "Use search_profiles to find candidates. "
         "Use fetch_profile to retrieve a single candidate by ID."
     ),
+    host="0.0.0.0", 
+    port=int(os.getenv("PORT", "8002"))
 )
 
 
@@ -92,5 +94,4 @@ async def fetch_profile(candidate_id: str) -> dict:
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", "8002"))
-    mcp.run(transport="sse", host="0.0.0.0", port=port)
+    mcp.run(transport="sse")

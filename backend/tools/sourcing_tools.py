@@ -28,7 +28,7 @@ logger = structlog.get_logger()
 class ResumeDatasetLoader:
     """Loads JSON Resume dataset and provides source-partitioned access."""
 
-    _dataset: Optional[List[Dict]] = None
+    _dataset: Optional[List[Dict[str, Any]]] = None
 
     @classmethod
     def _load(cls) -> List[Dict]:
@@ -36,7 +36,7 @@ class ResumeDatasetLoader:
             logger.info("loading_hf_dataset", dataset="json_resume_dataset")
             try:
                 ds = load_dataset("InferenceEndpoint/json_resume_dataset", split="train")
-                cls._dataset = [row for row in ds]
+                cls._dataset = [dict(row) for row in ds]
                 logger.info("dataset_loaded", count=len(cls._dataset))
             except Exception as exc:
                 logger.warning("hf_dataset_load_failed", error=str(exc))
@@ -117,9 +117,6 @@ def _normalize_json_resume(raw: Dict[str, Any], source: SourcePlatform) -> Optio
     except Exception as exc:
         logger.debug("profile_parse_error", error=str(exc))
         return None
-
-
-# ─── Source Search Tools ──────────────────────────────────────
 
 async def search_linkedin(
     must_have_skills: List[str],

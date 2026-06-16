@@ -15,13 +15,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_env: str = "development"
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = ""
     google_api_key: str = ""
     gemini_model: str = "gemini-2.5-pro-preview-05-06"
     gemini_flash_model: str = "gemini-2.0-flash"
-    pinecone_api_key: str = ""
-    pinecone_index_name: str = "recruitment-profiles"
-    pinecone_environment: str = "us-east-1"
     langchain_api_key: str = ""
     langchain_tracing_v2: str = "true"
     langchain_project: str = "recruitment-agent"
@@ -31,24 +28,26 @@ class Settings(BaseSettings):
     database_url: str = ""          # assembled post-init
     redis_password: str = ""
     redis_url: str = ""             # assembled post-init
-    elasticsearch_url: str = "http://elasticsearch:9200"
+    elasticsearch_url: str = ""
     jwt_secret_key: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
-    hf_dataset: str = "json_resume_dataset"
+    hf_dataset: str = "InferenceEndpoint/json_resume_dataset"
     hf_token: str = ""
     max_tokens_per_jd: int = 500_000
     max_cost_per_jd_usd: float = 5.00
     max_llm_retries: int = 3
     daily_budget_usd: float = 100.00
-    otel_exporter_otlp_endpoint: str = "http://otel-collector:4317"
+    otel_exporter_otlp_endpoint: str = ""
     otel_service_name: str = ""
     grafana_password: str = ""
-    embedding_model = "all-MiniLM-L6-v2"          # 384-dim, fast
-    reranker_model = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    embedding_model: str = "all-MiniLM-L6-v2"          # 384-dim, fast
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     linkedin_mcp_url: str = ""
     naukri_mcp_url: str = ""
     ats_mcp_url: str = ""
+    cache_dir: str = "/models"
+    inference_service_url: str = ""
 
     @model_validator(mode="after")
     def assemble_urls(self) -> "Settings":

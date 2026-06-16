@@ -3,12 +3,14 @@ SQLAlchemy async ORM models for PostgreSQL.
 """
 from __future__ import annotations
 
+from typing import Optional
+
 from sqlalchemy import (
     Boolean, Column, DateTime, Float, ForeignKey,
     Integer, JSON, String, Text, func
 )
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from backend.utils.helpers import gen_uuid
 
@@ -30,10 +32,10 @@ class JDModel(Base):
     location = Column(String(200))
     employment_type = Column(String(50))
     target_hiring_date = Column(String(20))
-    status = Column(String(20), default="OPEN")
+    status: Mapped[str] = mapped_column(String(20), default="OPEN")
     parsed_data = Column(JSON, nullable=True)
-    compliance_passed = Column(Boolean, nullable=True)
-    compliance_flags = Column(JSON, default=list)
+    compliance_passed: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    compliance_flags: Mapped[list[str]] = mapped_column(JSON, default=list)
     total_input_tokens = Column(Integer, default=0)
     total_output_tokens = Column(Integer, default=0)
     estimated_cost_usd = Column(Float, default=0.0)
@@ -93,7 +95,7 @@ class AuditModel(Base):
     action = Column(String(50))
     reason = Column(Text, nullable=True)
     ranking_snapshot = Column(JSON, nullable=True)
-    metadata = Column(JSON, default=dict)
+    extract_metadata = Column(JSON, default=dict)
     closed_at = Column(DateTime, default=func.now())
     jd = relationship("JDModel", back_populates="audit_records")
 
@@ -128,13 +130,13 @@ class RecruiterFeedbackModel(Base):
     candidate_id = Column(String, ForeignKey("candidates.candidate_id"), nullable=False)
     recruiter_id = Column(String(100), nullable=False)
     # Score overrides: {"Python": 9.5, "FastAPI": 8.0}
-    score_overrides = Column(JSON, default=dict)
+    score_overrides: Mapped[dict[str, float]] = mapped_column(JSON, default=dict)
     # Weight overrides: {"Python": 3.0, "Leadership": 0.5}
-    weight_overrides = Column(JSON, default=dict)
+    weight_overrides: Mapped[dict[str, float]] = mapped_column(JSON, default=dict)
     # Free-text notes
-    notes = Column(Text, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     # Shortlist decision: APPROVE, REJECT, HOLD
-    decision = Column(String(20), nullable=True)
+    decision: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     created_at = Column(DateTime, default=func.now())
     candidate = relationship("CandidateModel", back_populates="feedback_records")
 
@@ -151,7 +153,7 @@ class ConversationModel(Base):
     recruiter_id = Column(String(100), nullable=False)
     role = Column(String(20))       # "user" | "assistant"
     content = Column(Text, nullable=False)
-    metadata = Column(JSON, default=dict)   # tool_calls, token_usage, etc.
+    extract_metadata = Column(JSON, default=dict)   # tool_calls, token_usage, etc.
     created_at = Column(DateTime, default=func.now())
     jd = relationship("JDModel", back_populates="conversations")
 

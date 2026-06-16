@@ -80,7 +80,7 @@ class ComplianceAgent:
             jd_model.compliance_passed = passed
             jd_model.compliance_flags = all_flags
             if not passed:
-                jd_model.status = JDStatus_REJECTED = "REJECTED"
+                jd_model.status = "REJECTED"
                 JDS_REJECTED.inc()
                 self.db.add(AuditModel(
                     jd_id=jd_id,

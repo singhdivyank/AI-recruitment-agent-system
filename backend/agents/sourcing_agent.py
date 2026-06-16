@@ -188,11 +188,12 @@ class SourcingAgent:
 
         # ── Fan-In: merge all results ────────────────────────────
         for name, result in zip(self.source_names, gathered):
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 log.error("mcp_source_failed", source=name, error=str(result))
-            else:
-                log.info("mcp_source_success", source=name, count=len(result))
-                self.all_profiles.extend(result)
+                continue
+            
+            log.info("mcp_source_success", source=name, count=len(result))
+            self.all_profiles.extend(result)
 
         # ── Write-back: mark sourced candidates in ATS ───────────
         # Only do this for a small sample to avoid hammering the ATS MCP

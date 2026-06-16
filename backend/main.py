@@ -17,11 +17,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from backend.agents.outreach_closure_agents import ClosureAgent
-from backend.api.evaluation import router as eval_router
-from backend.core.config import get_settings
-from backend.core.llm_client import LLMClient
-from backend.core.schemas import (
+from .agents.outreach_closure_agents import ClosureAgent
+from .api.evaluation import router as eval_router
+from .core.config import get_settings
+from .core.llm_client import LLMClient
+from .core.schemas import (
     ConversationMessage, 
     JDCloseRequest, 
     JDCreate, 
@@ -29,7 +29,7 @@ from backend.core.schemas import (
     WorkflowState,
     OutreachSendRequest
 )
-from backend.db.models import (
+from .db.models import (
     AuditModel, 
     CandidateModel, 
     ConversationModel,
@@ -37,13 +37,13 @@ from backend.db.models import (
     RecruiterFeedbackModel, 
     OutreachHistoryModel
 )
-from backend.db.session import get_db, init_db
-from backend.observability.telemetry import setup_prometheus, setup_tracing
-from backend.rag.pipeline import get_rag
-from backend.tools.mcp_client import check_all_servers
-from backend.utils.helpers import _audit_to_dict, _jd_to_dict, _candidate_to_dict
-from backend.utils.prompts import CONVERSATION_TURN_PROMPT
-from backend.workflows.orchestrator import OrchestratorAgent
+from .db.session import get_db, init_db
+from .observability.telemetry import setup_prometheus, setup_tracing
+from .rag.pipeline import get_rag
+from .tools.mcp_client import check_all_servers
+from .utils.helpers import _audit_to_dict, _jd_to_dict, _candidate_to_dict
+from .utils.prompts import CONVERSATION_TURN_PROMPT
+from .workflows.orchestrator import OrchestratorAgent
 
 settings = get_settings()
 logger = structlog.get_logger()

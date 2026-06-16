@@ -27,6 +27,8 @@ mcp = fastmcp.FastMCP(
         "Use search_profiles to find candidates matching a JD. "
         "Use fetch_profile to retrieve a single candidate by ID."
     ),
+    host="0.0.0.0", 
+    port=int(os.getenv("PORT", "8001"))
 )
 
 @mcp.tool()
@@ -87,5 +89,4 @@ async def fetch_profile(candidate_id: str) -> dict:
     return {"error": "not_found", "candidate_id": candidate_id}
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", "8001"))
-    mcp.run(transport="sse", host="0.0.0.0", port=port)
+    mcp.run(transport="sse")
