@@ -31,6 +31,8 @@ mcp = fastmcp.FastMCP(
         "Use update_status to change a candidate's status in the ATS — "
         "this is the only source that supports status writes."
     ),
+    host="0.0.0.0", 
+    port=int(os.getenv("PORT", "8003"))
 )
 
 _ats_status_store: Dict[str, Dict] = {}
@@ -167,5 +169,4 @@ async def update_status(
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", "8003"))
-    mcp.run(transport="sse", host="0.0.0.0", port=port)
+    mcp.run(transport="sse")

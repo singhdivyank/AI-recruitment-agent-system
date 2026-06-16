@@ -260,3 +260,13 @@ backend pods, Kafka would be used to distribute JD processing tasks
 across instances, with each pod consuming from a `jd-intake` topic.
 The architecture is designed to support this: OrchestratorAgent is
 stateless and reads all state from PostgreSQL + Redis.
+
+## Backend Container
+
+```
+Backend container          Inference Service container
+(FastAPI, LangGraph)  -->  (FastAPI, sentence-transformers, torch)
+                           - POST /embed      (all-MiniLM-L6-v2)
+                           - POST /rerank     (CrossEncoder)
+                           - GET  /health
+```

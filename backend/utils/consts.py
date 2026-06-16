@@ -24,6 +24,7 @@ SHORTLIST_N = 10
 INDEX_DIMENSION = 384
 TOP_K_RETRIEVE = 50       # initial retrieval pool
 TOP_K_RERANK = 20         # after re-ranking
+IVFFLAT_LISTS   = 50
 
 INDEX_NAME = "recruitment_profiles"
 

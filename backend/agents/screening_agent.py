@@ -140,13 +140,13 @@ class ScreeningAgent:
 
         # ── RAG retrieval: narrow down to most relevant candidates ──
         rag_matches = await self.rag.retrieve(
-            jd_title=jd_parsed.title,
+            jd_title=jd_parsed.title if jd_parsed else "",
             jd_description=state.jd_raw.description,
-            must_have_skills=jd_parsed.must_have_skills,
-            nice_to_have_skills=jd_parsed.nice_to_have_skills,
-            location=jd_parsed.location,
-            min_years=jd_parsed.years_experience.min,
-            max_years=jd_parsed.years_experience.max,
+            must_have_skills=jd_parsed.must_have_skills if jd_parsed else [],
+            nice_to_have_skills=jd_parsed.nice_to_have_skills if jd_parsed else [],
+            location=jd_parsed.location if jd_parsed else "",
+            min_years=jd_parsed.years_experience.min if jd_parsed else 0,
+            max_years=jd_parsed.years_experience.max if jd_parsed else 10,
             top_k=60,
         )
 
@@ -158,6 +158,9 @@ class ScreeningAgent:
         }
 
         # Re-rank
+        if not jd_parsed:
+            return state
+        
         query = f"{jd_parsed.title} {' '.join(jd_parsed.must_have_skills)}"
         reranked = await self.rag.rerank(query, rag_matches, candidate_texts, top_k=30)
 

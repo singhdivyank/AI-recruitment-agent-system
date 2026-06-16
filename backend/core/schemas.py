@@ -84,6 +84,8 @@ class JDParsed(BaseModel):
     hiring_urgency: str           # low / medium / high
     key_responsibilities: List[str]
     ideal_candidate_summary: str
+    description: str
+    target_hiring_date: date
 
 
 class JDResponse(BaseModel):
@@ -193,7 +195,7 @@ class RankedCandidate(BaseModel):
 class ShortlistResponse(BaseModel):
     jd_id: str
     shortlist: List[RankedCandidate]
-    top_pick: RankedCandidate
+    top_pick: Optional[RankedCandidate]
     top_pick_justification: str
     total_candidates_evaluated: int
     generated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -225,7 +227,7 @@ class WorkflowState(BaseModel):
     """LangGraph state object passed between all agent nodes."""
     jd_id: str
     jd_raw: JDCreate
-    jd_parsed: JDParsed
+    jd_parsed: Optional[JDParsed] = None
     jd_response: Optional[JDResponse] = None
     compliance_passed: bool = False
     compliance_flags: List[str] = Field(default_factory=list)

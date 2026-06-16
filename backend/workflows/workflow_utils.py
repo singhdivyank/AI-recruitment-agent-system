@@ -16,9 +16,6 @@ from backend.rag.pipeline import RAGPipeline, get_rag
 
 logger = structlog.get_logger()
 
-# ─── Node wrappers ────────────────────────────────────────────
-# LangGraph nodes receive and return the state dict
-
 def make_nodes(agents: dict) -> dict:
     """Return dict of node_name → async callable."""
 
@@ -82,8 +79,6 @@ def make_nodes(agents: dict) -> dict:
         "outreach": outreach_node,
     }
 
-# ─── Conditional edges ────────────────────────────────────────
-
 def compliance_router(state: dict) -> Literal["sourcing", "end_rejected"]:
     ws = WorkflowState(**state)
     if ws.error:
@@ -94,8 +89,6 @@ def compliance_router(state: dict) -> Literal["sourcing", "end_rejected"]:
 def error_router(state: dict) -> Literal["next", "end_error"]:
     ws = WorkflowState(**state)
     return "end_error" if ws.error else "next"
-
-# ─── Graph Builder ────────────────────────────────────────────
 
 def build_graph(
     llm: Any,

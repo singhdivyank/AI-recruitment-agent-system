@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY . ./mcp_servers
 
 ENV SERVER_MODULE=mcp_servers.linkedin.server
 ENV PORT=8001
