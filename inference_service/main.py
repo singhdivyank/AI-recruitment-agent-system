@@ -18,23 +18,26 @@ from __future__ import annotations
 
 import time
 from contextlib import asynccontextmanager
-from typing import List, Optional
+from typing import Optional
 
 import structlog
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
-from backend.core.config import Settings
+from schemas import (
+    EmbedRequest, 
+    EmbedResponse, 
+    RerankRequest, 
+    RerankResponse
+)
 
 logger = structlog.get_logger()
-get_settings = Settings()
 
-EMBEDDING_MODEL = get_settings.embedding_model
-RERANKER_MODEL  = get_settings.reranker_model
-CACHE_DIR       = get_settings.cache_dir
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+RERANKER_MODEL  = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+CACHE_DIR       = "/models"
 
 # Module-level model holders
 _embedder: Optional[SentenceTransformer] = None
@@ -73,34 +76,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-class EmbedRequest(BaseModel):
-    texts: List[str]
-    batch_size: int = 32
-
-
-class EmbedResponse(BaseModel):
-    vectors: List[List[float]]
-    model: str
-    dim: int
-    count: int
-    latency_ms: int
-
-
-class RerankPair(BaseModel):
-    query: str
-    passage: str
-
-
-class RerankRequest(BaseModel):
-    pairs: List[RerankPair]
-
-
-class RerankResponse(BaseModel):
-    scores: List[float]
-    model: str
-    count: int
-    latency_ms: int
 
 @app.get("/health")
 def health():

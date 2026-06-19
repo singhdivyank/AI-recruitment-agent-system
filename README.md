@@ -214,41 +214,110 @@ recruitment-agent/
 │   │   ├── screening_agent.py
 │   │   ├── ranking_agent.py
 │   │   └── outreach_closure_agents.py
-│   ├── workflows/
-│   │   └── orchestrator.py   # LangGraph StateGraph
-│   ├── rag/
-│   │   └── pipeline.py       # Pinecone + CrossEncoder RAG
-│   ├── tools/
-│   │   └── sourcing_tools.py # HF dataset + 3 source simulators
+│   ├── api/
+│   │   └── evaluation.py
 │   ├── core/
 │   │   ├── config.py         # Pydantic settings
-│   │   ├── schemas.py        # All Pydantic models
-│   │   └── llm_client.py     # Gemini client + cost guardrails
+│   │   ├── llm_client.py     # Gemini client + cost guardrails
+│   │   └── schemas.py        # All Pydantic models
 │   ├── db/
 │   │   ├── models.py         # SQLAlchemy async models
 │   │   └── session.py        # Async session factory
 │   ├── observability/
 │   │   └── telemetry.py      # Prometheus + OTel + structlog
-│   └── main.py               # FastAPI app + all routes
+│   ├── rag/
+│   │   └── pipeline.py       # Pinecone + CrossEncoder RAG
+│   ├── tools/
+│   │   ├── elastic_search_tool.py
+│   │   ├── mcp_client.py
+│   │   ├── sourcing_tools.py # HF dataset + 3 source simulators
+│   │   └── tool_registry.py
+│   ├── utils/
+│   │   ├── consts.py
+│   │   ├── helpers.py
+│   │   ├── prometheus_metrics.py
+│   │   └── prompts.py
+│   ├── workflows/
+│   │   ├── orchestrator.py   # LangGraph StateGraph
+│   │   └── workflow_utils.py
+│   ├── Dockerfile
+│   ├── main.py               # FastAPI app + all routes
+│   └── requirements.txt
+│
 ├── frontend/
 │   ├── pages/
 │   │   ├── index.js          # Dashboard
 │   │   └── jd/[id].js        # JD detail + shortlist
 │   ├── components/
-│   │   ├── dashboard/        # StatusBadge, MetricsBar
-│   │   ├── jd/               # JDForm
-│   │   └── candidates/       # CandidateCard
-│   └── services/api.js       # All API calls
+│   │    ├── candidates/       # CandidateCard
+│   │    │     └── CandidateCard.js
+│   │    ├── dashboard/        # StatusBadge, MetricsBar
+│   │    │     ├── MetricsBar.js
+│   │    │     └── StatusBadge.js
+│   │    ├── jd/               # JDForm
+│   │    │     └── JDForm.js
+│   │    ├── services/
+│   │    │     └── api.js      # All API calls
+│   │    └── consts.js
+│   ├── configs/
+│   │     ├── next.config.js
+│   │     ├── postcss.config.js
+│   │     └── tailwind.config.js
+│   ├── pages/
+│   │    ├── candidates/
+│   │    │    └── [id].js
+│   │    ├── jd/
+│   │    │    └── [id].js
+│   │    ├── _app.js
+│   │    └── index.js
+│   ├── services/
+│   │    └── api.js
+│   ├── styles/
+│   │    └── global.css
+│   ├── api.js
+│   ├── Dockerfile
+│   ├── package-lock.json
+│   └── package.json
+│
+├── inference_service/
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── requirements.txt
+│   └── schemas.py
+│
+├── mcp_servers/
+│   ├── ats/
+│   │    └── server.py
+│   ├── linkedin/
+│   │    └── server.py
+│   ├── naukri/
+│   │    └── server.py
+│   ├── Dockerfile
+│   ├── helpers.py
+│   ├── requirements.txt
+│   └── shared_dataset.py
+│
 ├── monitoring/
-│   ├── prometheus/prometheus.yml
-│   ├── grafana/datasources.yml
+│   ├── grafana/
+│   │    ├── dashboards/
+│   │    │    ├── dashboards.yml
+│   │    │    └── recruitment_dashboard.json
+│   │    └── datasources.yml
+│   ├── prometheus/
+│   │    └── prometheus.yml
 │   └── otel-config.yml
+│
 ├── docs/
 │   ├── architecture.md       # Full system design + diagrams
 │   └── decisions.md          # Key design decisions + rationale
-├── scripts/init_db.sql
+│
+├── scripts/
+│   └── init_db.sql
+├── .env.example
+├── .gitignore
 ├── docker-compose.yml
-└── .env.example
+├── LICENSE
+└── README.md
 ```
 
 ---
@@ -286,12 +355,7 @@ See `.env.example` for the full list. Minimum required to run:
 
 ```bash
 GOOGLE_API_KEY=...        # Gemini 2.5 Pro access
-PINECONE_API_KEY=...      # Vector store
-```
-
-Optional but recommended:
-
-```bash
 LANGCHAIN_API_KEY=...     # LangSmith LLM tracing
 HF_TOKEN=...              # If dataset requires auth
+POSTGRES_PASSWORD=...
 ```

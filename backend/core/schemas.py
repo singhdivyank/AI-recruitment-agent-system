@@ -265,3 +265,7 @@ class OutreachSendRequest(BaseModel):
     subject: str
     body: str
     channel: str = "email"
+
+
+class MCPCallError(Exception):
+    """Raised when MCP tool call fails or returns error result"""
