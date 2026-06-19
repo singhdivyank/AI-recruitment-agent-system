@@ -6,21 +6,23 @@ import { ScoreBar } from "@/components/ui/ScoreBar";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, ExternalLink, MapPin, Briefcase } from "lucide-react";
 import type { Candidate } from "@/types";
+import type { CriterionScore, ScreeningData } from "@/types";
 
 interface CandidateCardProps {
   candidate: Candidate & {
     final_rank?: number;
     overall_score?: number;
-    screening_data?: any;
+    screening_data?: ScreeningData;
     outreach_draft?: string;
   };
-  onSelect?: (c: any) => void;
+  onSelect?: (c: CandidateCardProps["candidate"]) => void;
 }
 
 export function CandidateCard({ candidate, onSelect }: CandidateCardProps) {
   const [expanded, setExpanded] = useState(false);
   const screening = candidate.screening_data;
   const initials = (candidate.name || "?").split(" ").map((p: string) => p[0]).join("").slice(0, 2).toUpperCase();
+  const criterionScores = screening?.criterion_scores ?? [];
 
   return (
     <div className={cn(
@@ -104,11 +106,11 @@ export function CandidateCard({ candidate, onSelect }: CandidateCardProps) {
           )}
 
           {/* Criterion scores */}
-          {screening?.criterion_scores?.length > 0 && (
+          {criterionScores.length > 0 && (
             <div>
               <div className="section-eyebrow mb-2">Criterion Scores</div>
               <div className="space-y-2.5">
-                {screening.criterion_scores.map((cs: any) => (
+                {criterionScores.map((cs: CriterionScore) => (
                   <div key={cs.criterion}>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-text-muted font-mono min-w-[130px] truncate">{cs.criterion}</span>

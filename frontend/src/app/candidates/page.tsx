@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { listJDs } from "@/lib/api";
 import { Topbar } from "@/components/layout/Topbar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { ScoreBar } from "@/components/ui/ScoreBar";
 import { Users, Search, MapPin, Briefcase } from "lucide-react";
 
 export default function CandidatesPage() {

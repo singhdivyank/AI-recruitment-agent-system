@@ -117,7 +117,7 @@ export default function ObservabilityPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
                 <XAxis dataKey="h" tick={{ fontSize: 9, fill: "#4B5563", fontFamily: "monospace" }} axisLine={false} tickLine={false} interval={5} />
                 <YAxis tick={{ fontSize: 9, fill: "#4B5563", fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                <Tooltip {...TOOLTIP} formatter={(v: any) => `$${v}`} />
+                <Tooltip {...TOOLTIP} formatter={(v: number | string) => `$${v}`} />
                 <Area type="monotone" dataKey="cost" stroke="#10B981" strokeWidth={1.5} fill="url(#costGrad)" name="Cost ($)" />
               </AreaChart>
             </ResponsiveContainer>

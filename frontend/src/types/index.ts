@@ -34,14 +34,14 @@ export interface JD {
 export interface CriterionScore {
   criterion: string;
   score: number;
-  reasoning: string;
+  reasoning?: string;
 }
 
 export interface ScreeningData {
-  criterion_scores: CriterionScore[];
+  criterion_scores?: CriterionScore[];
   strengths: string[];
   gaps: string[];
-  overall_reasoning: string;
+  overall_reasoning?: string;
 }
 
 export interface Candidate {
@@ -59,11 +59,18 @@ export interface Candidate {
 }
 
 export interface RankedCandidate {
-  rank: number;
-  final_score: number;
-  candidate: Candidate;
-  screening?: ScreeningData;
+  rank?: number;
+  final_score?: number;
   outreach_draft?: string;
+
+  screening?: {
+    criterion_scores?: CriterionScore[];
+    strengths?: string[];
+    gaps?: string[];
+    overall_reasoning?: string;
+  };
+
+  candidate: Candidate;
 }
 
 export interface CostMetrics {

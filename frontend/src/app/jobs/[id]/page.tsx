@@ -17,6 +17,7 @@ import {
   MessageSquare, Clock, FileText, ShieldCheck, Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { RankedCandidate } from "@/types";
 
 const STAGE_DESCRIPTIONS: Record<string, string> = {
   OPEN:        "JD received, initiating compliance check",
@@ -26,8 +27,13 @@ const STAGE_DESCRIPTIONS: Record<string, string> = {
   CLOSED:      "Role filled",
 };
 
+interface ChatMessage {
+  role: string;
+  content: string;
+}
+
 function WorkflowProgress({ status }: { status: string }) {
-  const currentIdx = PIPELINE_STAGES.indexOf(status as any);
+  const currentIdx = PIPELINE_STAGES.indexOf(status as (typeof PIPELINE_STAGES)[number]);
   const failed = status === "REJECTED";
 
   return (
@@ -124,9 +130,14 @@ export default function JDDetailPage() {
     } catch { alert("Failed to close JD"); }
   };
 
-  const flattenCandidate = (rc: any) => ({
+  const flattenCandidate = (rc: RankedCandidate) => ({
     ...rc.candidate, final_rank: rc.rank, overall_score: rc.final_score,
-    screening_data: rc.screening, outreach_draft: rc.outreach_draft,
+    screening_data: {
+      criterion_scores: rc.screening?.criterion_scores ?? [],
+      strengths: rc.screening?.strengths ?? [],
+      gaps: rc.screening?.gaps ?? [],
+      overall_reasoning: rc.screening?.overall_reasoning,
+    }, outreach_draft: rc.outreach_draft,
   });
 
   return (
@@ -258,7 +269,7 @@ export default function JDDetailPage() {
               {(chatData?.conversation ?? []).length === 0 ? (
                 <p className="text-[11px] text-text-faint font-mono">Ask anything about the pipeline or candidates…</p>
               ) : (
-                (chatData?.conversation ?? []).map((msg: any, i: number) => (
+                (chatData?.conversation ?? []).map((msg: ChatMessage, i: number) => (
                   <div key={i} className={cn(
                     "text-[11px] px-3 py-2 rounded-lg font-mono leading-relaxed",
                     msg.role === "user" ? "bg-primary/10 text-primary" : "bg-bg text-text-muted"
@@ -303,7 +314,9 @@ export default function JDDetailPage() {
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-xs text-text-muted font-mono">Match score:</span>
                         <div className="w-32">
-                          <ScoreBar score={topPick.final_score} />
+                          {topPick.final_score !== undefined && (
+                            <ScoreBar score={topPick.final_score} />
+                          )}
                         </div>
                       </div>
                     </div>

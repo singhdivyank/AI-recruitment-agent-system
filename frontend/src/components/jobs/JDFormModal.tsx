@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { createJD } from "@/lib/api";
+import axios from "axios";
 
 const EMPLOYMENT_TYPES = ["Full-Time","Part-Time","Contract","Freelance","Internship"];
 
@@ -35,8 +36,15 @@ export function JDFormModal({ onCloseAction, onSuccessAction }: JDFormModalProps
         target_hiring_date: form.target_hiring_date,
       });
       onSuccessAction();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Submission failed. Please try again.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.detail ??
+          "Submission failed. Please try again."
+        );
+      } else {
+        setError("Submission failed. Please try again.");
+      }
     } finally { setLoading(false); }
   };
 
