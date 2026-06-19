@@ -1,29 +1,36 @@
+import { useState } from "react";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import Link from "next/link";
-import { getJD, getShortlist, getAuditLog, closeJD, sendConversationMessage, getConversation } from "../../services/api";
+import {
+  getJD, getShortlist, getAuditLog, closeJD,
+  sendConversationMessage, getConversation,
+} from "../../services/api";
 import StatusBadge from "../../components/dashboard/StatusBadge";
 import CandidateCard from "../../components/candidates/CandidateCard";
 
 export default function JDDetail() {
+  const router = useRouter();
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const { id } = router.query;
 
-  const { data: jd, isLoading: jdLoading } = useSWR(
+  const { data: jd, isLoading: jdLoading, mutate: mutateJD } = useSWR(
     id ? `jd-${id}` : null,
     () => getJD(id),
     { refreshInterval: 4000 }
   );
   const { data: shortlistData, mutate: mutateShortlist } = useSWR(
-    id && jd?.status === "SHORTLISTED" ? `shortlist-${id}` : null,
+    id && ["SHORTLISTED", "CLOSED"].includes(jd?.status) ? `shortlist-${id}` : null,
     () => getShortlist(id)
   );
+
   const { data: chatData, mutate: mutateChat } = useSWR(
     id ? `chat-${id}` : null,
     () => getConversation(id),
     { refreshInterval: 5000 }
   );
+
   const { data: auditData } = useSWR(
     id ? `audit-${id}` : null,
     () => getAuditLog(id),
@@ -56,14 +63,21 @@ export default function JDDetail() {
         recruiter_id: "recruiter-1",
         notes: "Selected via UI",
       });
-      mutateShortlist();
-      router.reload();
+      await mutateShortlist();
+      await mutateJD();
     } catch (e) {
       alert("Failed to close JD");
     }
   };
 
-  const topPick = shortlist[0];
+  const topPickCandidate = shortlist[0]?.candidate;
+  const flattenCandidate = (rc) => ({
+    ...rc.candidate,
+    final_rank: rc.rank,
+    overall_score: rc.final_score,
+    screening_data: rc.screening,
+    outreach_draft: rc.outreach_draft,
+  });
 
   return (
     <div className="min-h-screen">
@@ -191,17 +205,19 @@ export default function JDDetail() {
         <div className="col-span-2">
           {jd.status === "SHORTLISTED" || jd.status === "CLOSED" ? (
             <div>
-              {/* Top Pick Banner */}
-              {topPick && jd.status !== "CLOSED" && (
+              {topPickCandidate && jd.status !== "CLOSED" && (
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mb-6">
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">⭐ Top Pick</div>
-                      <div className="text-lg font-bold">{topPick.name}</div>
-                      <div className="text-sm text-gray-600">{topPick.experience_years?.toFixed(0)} years · {topPick.location} · Score: <strong>{topPick.overall_score?.toFixed(1)}/10</strong></div>
+                      <div className="text-lg font-bold">{topPickCandidate.name}</div>
+                      <div className="text-sm text-gray-600">
+                        {topPickCandidate.experience_years?.toFixed(0)} years · {topPickCandidate.location} · Score:{" "}
+                        <strong>{topPick.final_score?.toFixed(1)}/10</strong>
+                      </div>
                     </div>
                     <button
-                      onClick={() => handleClose(topPick.candidate_id, topPick.name)}
+                      onClick={() => handleClose(topPickCandidate.candidate_id, topPickCandidate.name)}
                       className="btn-primary"
                     >
                       Select & Close JD
@@ -214,12 +230,16 @@ export default function JDDetail() {
                 Shortlisted Candidates ({shortlist.length})
               </h2>
               <div className="space-y-4">
-                {shortlist.map((c) => (
+                {shortlist.map((rc) => (
                   <CandidateCard
-                    key={c.candidate_id}
-                    candidate={c}
+                    key={rc.candidate.candidate_id}
+                    candidate={flattenCandidate(rc)}
                     jdId={id}
-                    onSelect={jd.status !== "CLOSED" ? () => handleClose(c.candidate_id, c.name) : null}
+                    onSelect={
+                      jd.status !== "CLOSED"
+                        ? (c) => handleClose(c.candidate_id, c.name)
+                        : null
+                    }
                   />
                 ))}
               </div>

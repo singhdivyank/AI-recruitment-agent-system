@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install
 
-COPY . ./frontend
+COPY . .
 
 EXPOSE 3000
 

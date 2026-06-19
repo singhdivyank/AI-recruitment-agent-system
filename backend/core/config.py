@@ -25,9 +25,10 @@ class Settings(BaseSettings):
     langchain_endpoint: str = "https://api.smith.langchain.com"
     postgres_user: str = ""
     postgres_password: str = ""
-    database_url: str = ""          # assembled post-init
+    postgres_db: str = "recruit"
+    database_url: str = ""
     redis_password: str = ""
-    redis_url: str = ""             # assembled post-init
+    redis_url: str = ""
     elasticsearch_url: str = ""
     jwt_secret_key: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
@@ -55,7 +56,7 @@ class Settings(BaseSettings):
         if not self.database_url:
             self.database_url = (
                 f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
-                f"@postgres:5432/{self.postgres_user}"
+                f"@postgres:5432/{self.postgres_db}"
             )
         if not self.redis_url:
             self.redis_url = f"redis://:{self.redis_password}@redis:6379/0"

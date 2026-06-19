@@ -2,36 +2,31 @@
 MCP Client
 ===========
 Connects to the three MCP servers (LinkedIn, Naukri, ATS) over SSE transport
-and exposes a clean async API for the SourcingAgent to call.
-
-This is the boundary between the orchestrator and the MCP protocol.
-The SourcingAgent never imports server code directly — it only uses this client.
-
+using the official MCP Python SDK client.
+ 
+FastMCP's SSE transport exposes two endpoints:
+  GET  /sse          — SSE stream (tool calls go through here)
+  POST /messages/    — message posting endpoint
+ 
+There is NO plain HTTP /call_tool or /tools REST endpoint.
+All tool invocations go through the MCP protocol over the SSE stream.
+ 
 Architecture:
-  SourcingAgent
-      │
-      ▼
-  MCPClient  ──SSE──▶  LinkedIn MCP (port 8001) → search_profiles, fetch_profile
-             ──SSE──▶  Naukri MCP   (port 8002) → search_profiles, fetch_profile
-             ──SSE──▶  ATS MCP      (port 8003) → search_profiles, fetch_profile, update_status
+  SourcingAgent → MCPClient → MCP SDK ClientSession → SSE → MCP Server
 """
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
-import httpx
 import structlog
 
+from mcp import ClientSession
+from mcp.client.sse import sse_client
+
 from backend.core.config import get_settings
-from backend.utils.consts import CALL_TOOL_PATH, LIST_TOOLS_PATH
+from backend.core.schemas import MCPCallError
 
 settings = get_settings()
 logger = structlog.get_logger()
-
-TIMEOUT = httpx.Timeout(30.0)
-
-
-class MCPCallError(Exception):
-    """Raised when an MCP tool call fails or returns an error result."""
 
 
 async def _call_tool(
@@ -41,46 +36,47 @@ async def _call_tool(
     source_label: str,
 ) -> Any:
     """
-    POST to an MCP server's /call_tool endpoint.
-
-    FastMCP over SSE exposes:
-      POST /call_tool
-      Body: {"name": str, "arguments": dict}
-      Response: {"content": [{"type": "text", "text": "<json string>"}]}
-                 or {"error": str}
+    Call a tool on an MCP server over SSE transport using the MCP SDK.
+    Opens a short-lived session per call (stateless usage pattern).
     """
     import json
-    url = f"{base_url}{CALL_TOOL_PATH}"
-    payload = {"name": tool_name, "arguments": arguments}
+    sse_url = f"{base_url}/sse"
 
     try:
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-            resp = await client.post(url, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+        async with sse_client(sse_url) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool(tool_name, arguments=arguments)
 
         # FastMCP wraps the result in content blocks
-        if "error" in data:
-            raise MCPCallError(f"{source_label}/{tool_name} error: {data['error']}")
+        if result.isError:
+            raise MCPCallError(f"{source_label}/{tool_name} tool error: {result.content}")
 
-        content = data.get("content", [])
-        if content and content[0].get("type") == "text":
-            return json.loads(content[0]["text"])
-        return data
+        content = result.content
+        if content and hasattr(content[0], "text"):
+            text = content[0].text
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError:
+                return text
+        
+        return {}
 
-    except httpx.HTTPStatusError as exc:
-        raise MCPCallError(f"{source_label}/{tool_name} HTTP {exc.response.status_code}") from exc
-    except httpx.RequestError as exc:
+    except MCPCallError:
+        raise
+    except Exception as exc:
         raise MCPCallError(f"{source_label}/{tool_name} connection error: {exc}") from exc
 
 
 async def list_tools(base_url: str) -> List[Dict[str, Any]]:
     """List tools exposed by an MCP server (for introspection / health checks)."""
     try:
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-            resp = await client.get(f"{base_url}{LIST_TOOLS_PATH}")
-            resp.raise_for_status()
-            return resp.json().get("tools", [])
+        sse_url = f"{base_url}/sse"
+        async with sse_client(sse_url) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.list_tools()
+                return [{"name": t.name, "description": t.description} for t in result.tools]
     except Exception as exc:
         logger.warning("mcp_list_tools_failed", url=base_url, error=str(exc))
         return []

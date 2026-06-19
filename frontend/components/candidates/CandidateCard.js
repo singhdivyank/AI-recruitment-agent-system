@@ -1,19 +1,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import StatusBadge from "../dashboard/StatusBadge";
-
-function ScoreBar({ score, max = 10 }) {
-  const pct = (score / max) * 100;
-  const color = pct >= 70 ? "bg-green-500" : pct >= 50 ? "bg-yellow-500" : "bg-red-400";
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-xs font-mono text-gray-600 w-8 text-right">{score?.toFixed(1)}</span>
-    </div>
-  );
-}
+import { ScoreBar } from "../consts";
 
 export default function CandidateCard({ candidate, onSelect }) {
   const [expanded, setExpanded] = useState(false);
@@ -60,7 +48,7 @@ export default function CandidateCard({ candidate, onSelect }) {
         <div className="flex items-center gap-2 ml-4">
           <StatusBadge status={candidate.status} />
           {onSelect && (
-            <button onClick={() => onSelect()} className="btn-primary text-xs py-1">
+            <button onClick={() => onSelect(candidate)} className="btn-primary text-xs py-1">
               Select
             </button>
           )}

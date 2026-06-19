@@ -6,22 +6,23 @@ import JDForm from "../components/jd/JDForm";
 import StatusBadge from "../components/dashboard/StatusBadge";
 import MetricsBar from "../components/dashboard/MetricsBar";
 
-const fetcher = (key) => {
-  if (key === "jds") return listJDs();
-  if (key === "cost") return getCostMetrics();
-};
-
 export default function Dashboard() {
-  const { data: jdsData, mutate: mutateJDs } = useSWR("jds", () => listJDs(), {
-    refreshInterval: 5000,
-  });
+  const {
+    data: jdsData,
+    mutate: mutateJDs,
+    error: jdsError,
+  } = useSWR("jds", () => listJDs(), { refreshInterval: 5000 });
+
   const { data: costData } = useSWR("cost", () => getCostMetrics(), {
     refreshInterval: 10000,
   });
+
   const [showForm, setShowForm] = useState(false);
 
   const jds = jdsData?.items || [];
-  const open = jds.filter((j) => ["OPEN", "SOURCING", "SCREENING", "SHORTLISTED", "PROCESSING"].includes(j.status));
+  const open = jds.filter((j) =>
+    ["OPEN", "SOURCING", "SCREENING", "SHORTLISTED", "PROCESSING"].includes(j.status)
+  );
   const closed = jds.filter((j) => j.status === "CLOSED");
   const rejected = jds.filter((j) => j.status === "REJECTED");
 
@@ -41,8 +42,20 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
+        {jdsError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-6">
+            ⚠️ Could not reach the backend. Is it running at{" "}
+            <span className="font-mono">{process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}</span>?
+          </div>
+        )}
+
         {/* Cost Metrics Bar */}
-        {costData && <MetricsBar cost={costData} jdCounts={{ open: open.length, closed: closed.length, rejected: rejected.length }} />}
+        {costData && (
+          <MetricsBar
+            cost={costData}
+            jdCounts={{ open: open.length, closed: closed.length, rejected: rejected.length }}
+          />
+        )}
 
         {/* Funnel stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -69,14 +82,16 @@ export default function Dashboard() {
           ) : (
             <div className="divide-y divide-gray-100">
               {jds.map((jd) => (
-                <Link key={jd.jd_id} href={`/jd/${jd.jd_id}`} className="flex items-center justify-between py-4 hover:bg-gray-50 -mx-6 px-6 transition-colors">
+                <Link
+                  key={jd.jd_id}
+                  href={`/jd/${jd.jd_id}`}
+                  className="flex items-center justify-between py-4 hover:bg-gray-50 -mx-6 px-6 transition-colors"
+                >
                   <div>
                     <div className="font-medium text-gray-900">{jd.title}</div>
                     <div className="text-sm text-gray-500 mt-0.5">
                       {jd.location} · {jd.employment_type} ·{" "}
-                      <span className="text-gray-400">
-                        {jd.total_candidates || 0} candidates
-                      </span>
+                      <span className="text-gray-400">{jd.total_candidates || 0} candidates</span>
                     </div>
                     <div className="flex gap-2 mt-1">
                       {(jd.must_have_skills || []).slice(0, 3).map((s) => (
@@ -105,7 +120,12 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h2 className="text-lg font-semibold">Submit New Job Description</h2>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
             </div>
             <JDForm
               onSuccess={() => {

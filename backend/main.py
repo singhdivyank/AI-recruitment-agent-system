@@ -49,7 +49,7 @@ settings = get_settings()
 logger = structlog.get_logger()
 
 # Module-level Redis client
-_redis: Optional[aioredis.Redis] = None
+_redis: aioredis.Redis
 
 def get_redis() -> aioredis.Redis:
     return _redis

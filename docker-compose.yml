@@ -5,7 +5,7 @@ services:
     image: pgvector/pgvector:pg16
     container_name: recruitment_postgres
     environment:
-      POSTGRES_DB: recruitment
+      POSTGRES_DB: ${POSTGRES_DB:-recruitment}
       POSTGRES_USER: ${POSTGRES_USER:-recruit}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-recruitpass}
     ports:
@@ -14,10 +14,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-recruit}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-recruit} -d ${POSTGRES_DB:-recruitment} && psql -U ${POSTGRES_USER:-recruit} -d ${POSTGRES_DB:-recruitment} -c 'SELECT 1' > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -57,7 +58,8 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-recruit}:${POSTGRES_PASSWORD:-recruitpass}@postgres:5432/recruitment
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-recruit}:${POSTGRES_PASSWORD:-recruitpass}@postgres:5432/${POSTGRES_DB:-recruitment}
+      - POSTGRES_DB=${POSTGRES_DB:-recruitment}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redispass}@redis:6379/0
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - LINKEDIN_MCP_URL=http://linkedin-mcp:8001
@@ -93,10 +95,11 @@ services:
     ports:
       - "8001:8001"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8001/tools || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8001/sse --max-time 5 || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
+      start_period: 30s
 
   naukri-mcp:
     build:
@@ -110,10 +113,11 @@ services:
     ports:
       - "8002:8002"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8002/tools || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8002/sse --max-time 5 || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
+      start_period: 30s
 
   ats-mcp:
     build:
@@ -127,10 +131,11 @@ services:
     ports:
       - "8003:8003"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8003/tools || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8003/sse --max-time 5 || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
+      start_period: 30s
 
   prometheus:
     image: prom/prometheus:v2.51.0
@@ -233,4 +238,4 @@ volumes:
   prometheus_data:
   grafana_data:
   elasticsearch_data:
-  model_cache: 
+  model_cache:
