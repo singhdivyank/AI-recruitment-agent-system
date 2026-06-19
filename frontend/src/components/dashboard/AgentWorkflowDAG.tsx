@@ -92,13 +92,10 @@ export function AgentWorkflowDAG({ nodes = DEFAULT_NODES }: AgentWorkflowProps) 
                     <line
                       x1="0" y1="6" x2="28" y2="6"
                       className={cn(
-                        node.status === "done" ? "stroke-primary" : "stroke-border"
+                        node.status === "running" ? "flow-line-animated stroke-primary" : node.status === "done" ? "stroke-primary" : "stroke-border"
                       )}
                       strokeWidth="1.5"
-                      {...(node.status === "running" ? {
-                        className: "flow-line-animated stroke-primary",
-                        strokeDasharray: "8 4",
-                      } : {})}
+                      strokeDasharray={node.status === "running" ? "8 4" : undefined}
                     />
                     <polygon
                       points="28,3 32,6 28,9"
