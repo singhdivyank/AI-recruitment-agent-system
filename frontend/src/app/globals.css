@@ -122,9 +122,9 @@
 
   /* ── Buttons ────────────────────────────────────────────── */
   .btn {
-    @apply inline-flex items-center justify-content gap-2 font-medium rounded-lg
-           transition-all duration-150 cursor-pointer border-none outline-none text-sm
-           disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 font-medium rounded-lg
+       transition-all duration-150 cursor-pointer border-none outline-none text-sm
+       disabled:opacity-40 disabled:cursor-not-allowed;
     justify-content: center;
   }
   .btn-primary {

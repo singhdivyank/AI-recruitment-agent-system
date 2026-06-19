@@ -218,7 +218,7 @@ export default function DashboardPage() {
       </div>
 
       {showForm && (
-        <JDFormModal onClose={() => setShowForm(false)} onSuccess={() => { setShowForm(false); mutate(); }} />
+        <JDFormModal onCloseAction={() => setShowForm(false)} onSuccessAction={() => { setShowForm(false); mutate(); }} />
       )}
     </div>
   );

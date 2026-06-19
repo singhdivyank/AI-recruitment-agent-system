@@ -6,11 +6,11 @@ import { createJD } from "@/lib/api";
 const EMPLOYMENT_TYPES = ["Full-Time","Part-Time","Contract","Freelance","Internship"];
 
 interface JDFormModalProps {
-  onClose: () => void;
-  onSuccess: () => void;
+  onCloseAction: () => void;
+  onSuccessAction: () => void;
 }
 
-export function JDFormModal({ onClose, onSuccess }: JDFormModalProps) {
+export function JDFormModal({ onCloseAction, onSuccessAction }: JDFormModalProps) {
   const [form, setForm] = useState({
     title: "", description: "", must_have_skills: "", nice_to_have_skills: "",
     min_years: 2, max_years: 8, location: "", employment_type: "Full-Time",
@@ -34,7 +34,7 @@ export function JDFormModal({ onClose, onSuccess }: JDFormModalProps) {
         location: form.location, employment_type: form.employment_type,
         target_hiring_date: form.target_hiring_date,
       });
-      onSuccess();
+      onSuccessAction();
     } catch (err: any) {
       setError(err.response?.data?.detail || "Submission failed. Please try again.");
     } finally { setLoading(false); }
@@ -50,7 +50,7 @@ export function JDFormModal({ onClose, onSuccess }: JDFormModalProps) {
               Triggers: Compliance → Sourcing → Screening → Ranking
             </p>
           </div>
-          <button onClick={onClose} className="btn-ghost p-1.5 rounded-lg">
+          <button onClick={onCloseAction} className="btn-ghost p-1.5 rounded-lg">
             <X size={16} />
           </button>
         </div>
