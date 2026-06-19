@@ -245,39 +245,53 @@ recruitment-agent/
 │   └── requirements.txt
 │
 ├── frontend/
-│   ├── pages/
-│   │   ├── index.js          # Dashboard
-│   │   └── jd/[id].js        # JD detail + shortlist
-│   ├── components/
-│   │    ├── candidates/       # CandidateCard
-│   │    │     └── CandidateCard.js
-│   │    ├── dashboard/        # StatusBadge, MetricsBar
-│   │    │     ├── MetricsBar.js
-│   │    │     └── StatusBadge.js
-│   │    ├── jd/               # JDForm
-│   │    │     └── JDForm.js
-│   │    ├── services/
-│   │    │     └── api.js      # All API calls
-│   │    └── consts.js
-│   ├── configs/
-│   │     ├── next.config.js
-│   │     ├── postcss.config.js
-│   │     └── tailwind.config.js
-│   ├── pages/
-│   │    ├── candidates/
-│   │    │    └── [id].js
-│   │    ├── jd/
-│   │    │    └── [id].js
-│   │    ├── _app.js
-│   │    └── index.js
-│   ├── services/
-│   │    └── api.js
-│   ├── styles/
-│   │    └── global.css
-│   ├── api.js
+│   ├──src/
+│   ├   ├── app/
+│   ├   │   ├── globals.css
+│   ├   │   ├── layout.tsx     # Root layout with Sidebar shell
+│   ├   │   ├── page.tsx       # Dashboard (KPIs + AgentDAG + JD table)
+│   ├   │   ├── candidates/
+│   ├   │   │   └── page.tsx
+│   ├   │   ├── evaluation/
+│   ├   │   │   └── page.tsx
+│   ├   │   ├── integrations/
+│   ├   │   │   └── page.tsx
+│   ├   │   ├── jobs/
+│   ├   │   │   ├── page.tsx
+│   ├   │   │   └── [id]/
+│   ├   │   │       └── page.tsx
+│   ├   │   ├── observability/
+│   ├   │   │   └── page.tsx
+│   ├   │   ├── settings/
+│   ├   │   │   └── page.tsx
+│   ├   │   └── workflows/
+│   ├   │       └── page.tsx
+│   ├   ├── components/
+│   ├   │   ├── candidates/
+│   ├   │   │   └── CandidateCard.tsx
+│   ├   │   ├── dashboard/
+│   ├   │   │   └── AgentWorkflowDAG.tsx # Signature hero element
+│   ├   │   ├── jobs/
+│   ├   │   │   └── JDFormModal.tsx
+│   ├   │   ├── layout/
+│   ├   │   │   ├── Sidebar.tsx
+│   ├   │   │   └── Topbar.tsx
+│   ├   │   └── ui/
+│   ├   │       ├── KpiCard.tsx
+│   ├   │       ├── PipelineTrack.tsx
+│   ├   │       ├── ScoreBar.tsx
+│   ├   │       └── StatusBadge.tsx
+│   ├   ├── lib/
+│   ├   │   ├── api.ts
+│   ├   │   └── utils.ts
+│   ├   └── types/
+│   ├       └── index.ts
 │   ├── Dockerfile
-│   ├── package-lock.json
-│   └── package.json
+│   ├── next.config.ts
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── tailwind.config.ts
+│   └── tsconfig.json
 │
 ├── inference_service/
 │   ├── Dockerfile
