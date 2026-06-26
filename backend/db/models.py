@@ -3,6 +3,7 @@ SQLAlchemy async ORM models for PostgreSQL.
 """
 from __future__ import annotations
 
+import uuid
 from typing import Optional
 
 from sqlalchemy import (
@@ -12,7 +13,8 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from backend.utils.helpers import gen_uuid
+def gen_uuid() -> str:
+    return str(uuid.uuid4())
 
 
 class Base(AsyncAttrs, DeclarativeBase):

@@ -18,10 +18,10 @@ import structlog
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from elasticsearch.helpers import async_bulk
 
-from backend.core.config import get_settings
-from backend.core.schemas import CandidateProfile
-from backend.observability.telemetry import record_tool_call
-from backend.utils.consts import INDEX_NAME, INDEX_MAPPING
+from core.config import get_settings
+from core.schemas import CandidateProfile
+from observability.telemetry import record_tool_call
+from utils.consts import INDEX_NAME, INDEX_MAPPING
 
 logger = structlog.get_logger()
 settings = get_settings()

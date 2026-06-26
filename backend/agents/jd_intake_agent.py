@@ -11,13 +11,13 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.llm_client import LLMClient
-from backend.core.schemas import JDParsed, JDStatus, WorkflowState
-from backend.db.models import AuditModel, JDModel
-from backend.observability.telemetry import observe_agent
-from backend.utils.prompts import JD_PARSE_SYSTEM_PROMPT
-from backend.utils.helpers import create_user_prompt
-from backend.utils.prometheus_metrics import JDS_CREATED
+from core.llm_client import LLMClient
+from core.schemas import JDParsed, JDStatus, WorkflowState
+from db.models import AuditModel, JDModel
+from observability.telemetry import observe_agent
+from utils.prompts import JD_PARSE_SYSTEM_PROMPT
+from utils.helpers import create_user_prompt
+from utils.prometheus_metrics import JDS_CREATED
 
 logger = structlog.get_logger()
 

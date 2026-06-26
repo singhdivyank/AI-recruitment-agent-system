@@ -10,16 +10,16 @@ import structlog
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.llm_client import LLMClient
-from backend.core.schemas import (
+from core.llm_client import LLMClient
+from core.schemas import (
     CandidateProfile, JDCloseRequest, JDParsed,
     RankedCandidate, WorkflowState
 )
-from backend.db.models import AuditModel, CandidateModel, JDModel
-from backend.observability.telemetry import observe_agent
-from backend.utils.helpers import create_outreach_user_prompt, create_justification_prompt
-from backend.utils.prompts import OUTREACH_SYSTEM_PROMPT, CLOSURE_SYSTEM_PROMPT
-from backend.utils.prometheus_metrics import JDS_CLOSED
+from db.models import AuditModel, CandidateModel, JDModel
+from observability.telemetry import observe_agent
+from utils.helpers import create_outreach_user_prompt, create_justification_prompt
+from utils.prompts import OUTREACH_SYSTEM_PROMPT, CLOSURE_SYSTEM_PROMPT
+from utils.prometheus_metrics import JDS_CLOSED
 
 logger = structlog.get_logger()
 

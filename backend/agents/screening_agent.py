@@ -19,17 +19,21 @@ from typing import Any, Dict, List
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.llm_client import LLMClient
-from backend.core.schemas import (
-    CandidateProfile, CandidateStatus, CriterionScore,
-    JDParsed, ScreeningResult, WorkflowState
+from core.llm_client import LLMClient
+from core.schemas import (
+    CandidateProfile, 
+    CandidateStatus, 
+    CriterionScore,
+    JDParsed, 
+    ScreeningResult, 
+    WorkflowState,
 )
-from backend.db.models import CandidateModel
-from backend.observability.telemetry import observe_agent
-from backend.rag.pipeline import RAGPipeline
-from backend.utils.helpers import create_screen_candidate
-from backend.utils.prometheus_metrics import SCREENING_DURATION, CANDIDATES_SCREENED
-from backend.utils.prompts import SCREENING_SYSTEM_PROMPT
+from db.models import CandidateModel
+from observability.telemetry import observe_agent
+from rag.pipeline import RAGPipeline
+from utils.helpers import create_screen_candidate
+from utils.prometheus_metrics import SCREENING_DURATION, CANDIDATES_SCREENED
+from utils.prompts import SCREENING_SYSTEM_PROMPT
 
 logger = structlog.get_logger()
 

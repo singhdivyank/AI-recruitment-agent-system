@@ -20,9 +20,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 
-from backend.db.models import AuditModel, CandidateModel, JDModel, RecruiterFeedbackModel
-from backend.db.session import get_db
-from backend.utils.helpers import _ndcg_at_k, _precision_at_k, _recall_at_k, _comp_ai_score
+from db.models import AuditModel, CandidateModel, JDModel, RecruiterFeedbackModel
+from db.session import get_db
+from utils.helpers import _ndcg_at_k, _precision_at_k, _recall_at_k, _comp_ai_score
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/api/v1/eval", tags=["evaluation"])

@@ -18,16 +18,21 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import update
 
-from backend.core.llm_client import LLMClient
-from backend.core.schemas import (
-    CandidateProfile, CandidateStatus, JDParsed,
-    RankedCandidate, ScreeningResult, ShortlistResponse, WorkflowState
+from core.llm_client import LLMClient
+from core.schemas import (
+    CandidateProfile, 
+    CandidateStatus, 
+    JDParsed,
+    RankedCandidate, 
+    ScreeningResult, 
+    ShortlistResponse, 
+    WorkflowState,
 )
-from backend.db.models import CandidateModel, JDModel
-from backend.observability.telemetry import observe_agent
-from backend.utils.consts import SHORTLIST_N
-from backend.utils.helpers import create_rationale_prompt, create_top_pick_prompt
-from backend.utils.prompts import RATIONALE_SYSTEM_PROMPT, TOP_PICK_SYSTEM_PROMPT
+from db.models import CandidateModel, JDModel
+from observability.telemetry import observe_agent
+from utils.consts import SHORTLIST_N
+from utils.helpers import create_rationale_prompt, create_top_pick_prompt
+from utils.prompts import RATIONALE_SYSTEM_PROMPT, TOP_PICK_SYSTEM_PROMPT
 
 logger = structlog.get_logger()
 

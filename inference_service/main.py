@@ -32,12 +32,9 @@ from schemas import (
     RerankRequest, 
     RerankResponse
 )
+from consts import EMBEDDING_MODEL, RERANKER_MODEL, CACHE_DIR
 
 logger = structlog.get_logger()
-
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-RERANKER_MODEL  = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-CACHE_DIR       = "/models"
 
 # Module-level model holders
 _embedder: Optional[SentenceTransformer] = None

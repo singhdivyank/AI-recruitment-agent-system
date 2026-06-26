@@ -15,9 +15,9 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .workflow_utils import build_graph
-from backend.core.llm_client import LLMClient
-from backend.core.schemas import WorkflowState
-from backend.rag.pipeline import RAGPipeline
+from core.llm_client import LLMClient
+from core.schemas import WorkflowState
+from rag.pipeline import RAGPipeline
 
 logger = structlog.get_logger()
 

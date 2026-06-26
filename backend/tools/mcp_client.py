@@ -22,8 +22,8 @@ import structlog
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 
-from backend.core.config import get_settings
-from backend.core.schemas import MCPCallError
+from core.config import get_settings
+from core.schemas import MCPCallError
 
 settings = get_settings()
 logger = structlog.get_logger()

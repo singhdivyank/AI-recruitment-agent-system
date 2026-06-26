@@ -12,13 +12,13 @@ import structlog
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.llm_client import LLMClient
-from backend.core.schemas import WorkflowState
-from backend.db.models import AuditModel, JDModel
-from backend.observability.telemetry import observe_agent
-from backend.utils.consts import DISALLOWED_PATTERNS
-from backend.utils.prompts import COMPLIANCE_SYSTEM_PROMPT
-from backend.utils.prometheus_metrics import JDS_REJECTED
+from core.llm_client import LLMClient
+from core.schemas import WorkflowState
+from db.models import AuditModel, JDModel
+from observability.telemetry import observe_agent
+from utils.consts import DISALLOWED_PATTERNS
+from utils.prompts import COMPLIANCE_SYSTEM_PROMPT
+from utils.prometheus_metrics import JDS_REJECTED
 
 logger = structlog.get_logger()
 

@@ -37,7 +37,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY --from=model-downloader /models /models
 
-COPY main.py schemas.py ./
+COPY main.py schemas.py consts.py ./
 
 ENV EMBEDDING_MODEL=all-MiniLM-L6-v2
 ENV RERANKER_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2

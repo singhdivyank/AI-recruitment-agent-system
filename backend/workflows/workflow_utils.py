@@ -4,15 +4,15 @@ import structlog
 
 from langgraph.graph import END, StateGraph
 
-from backend.agents.compliance_agent import ComplianceAgent
-from backend.agents.jd_intake_agent import JDIntakeAgent
-from backend.agents.normalization_dedup_agents import DeduplicationAgent, NormalizationAgent
-from backend.agents.outreach_closure_agents import OutreachAgent
-from backend.agents.ranking_agent import RankingAgent
-from backend.agents.screening_agent import ScreeningAgent
-from backend.agents.sourcing_agent import SourcingAgent
-from backend.core.schemas import WorkflowState
-from backend.rag.pipeline import RAGPipeline, get_rag
+from agents.compliance_agent import ComplianceAgent
+from agents.jd_intake_agent import JDIntakeAgent
+from agents.normalization_dedup_agents import DeduplicationAgent, NormalizationAgent
+from agents.outreach_closure_agents import OutreachAgent
+from agents.ranking_agent import RankingAgent
+from agents.screening_agent import ScreeningAgent
+from agents.sourcing_agent import SourcingAgent
+from core.schemas import WorkflowState
+from rag.pipeline import RAGPipeline, get_rag
 
 logger = structlog.get_logger()
 

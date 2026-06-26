@@ -19,8 +19,8 @@ from opentelemetry.sdk.resources import Resource
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from backend.core.config import get_settings
-from backend.utils.prometheus_metrics import (
+from core.config import get_settings
+from utils.prometheus_metrics import (
     AGENT_CALLS,
     LLM_CALLS,
     LLM_TOKENS,

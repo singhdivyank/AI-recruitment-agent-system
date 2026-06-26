@@ -1,16 +1,12 @@
 import math
-import uuid
 from typing import Any, Optional, List, Tuple
 
-from backend.core.schemas import EmploymentEntry, EducationEntry
-from backend.db.models import (
+from core.schemas import EmploymentEntry, EducationEntry
+from db.models import (
     AuditModel, 
     CandidateModel, 
     JDModel,
 )
-
-def gen_uuid() -> str:
-    return str(uuid.uuid4())
 
 def create_user_prompt(jd: Any) -> str:
     return f"""

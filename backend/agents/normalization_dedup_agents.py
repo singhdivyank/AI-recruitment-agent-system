@@ -18,10 +18,10 @@ from typing import Any, Dict, List, Optional
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.schemas import (
+from core.schemas import (
     CandidateProfile, CandidateStatus, WorkflowState
 )
-from backend.observability.telemetry import observe_agent
+from observability.telemetry import observe_agent
 
 logger = structlog.get_logger()
 

@@ -3,8 +3,8 @@ Async SQLAlchemy session factory and dependency injection.
 """
 from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from backend.core.config import get_settings
-from backend.db.models import Base
+from core.config import get_settings
+from .models import Base
 
 settings = get_settings()
 

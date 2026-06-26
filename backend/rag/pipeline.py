@@ -32,10 +32,10 @@ import structlog
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from backend.core.config import get_settings
-from backend.core.schemas import CandidateProfile
-from backend.observability.telemetry import record_tool_call
-from backend.utils.consts import (
+from core.config import get_settings
+from core.schemas import CandidateProfile
+from observability.telemetry import record_tool_call
+from utils.consts import (
     INDEX_DIMENSION, 
     IVFFLAT_LISTS, 
     TOP_K_RETRIEVE, 

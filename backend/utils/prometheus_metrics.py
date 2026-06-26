@@ -85,12 +85,6 @@ CANDIDATES_SOURCED = Counter(
     ["source"],
 )
 
-TOOL_FAILURES = Counter(
-    "recruitment_tool_failures_total",
-    "Total tool call failures",
-    ["tool_name"],
-)
-
 JDS_CREATED = Counter("recruitment_jds_created_total", "JDs submitted")
 JDS_CLOSED = Counter("recruitment_jds_closed_total", "JDs closed")
 JDS_REJECTED = Counter("recruitment_jds_rejected_compliance_total", "JDs rejected by compliance")
@@ -98,34 +92,4 @@ JDS_REJECTED = Counter("recruitment_jds_rejected_compliance_total", "JDs rejecte
 ACTIVE_WORKFLOWS = Gauge(
     "recruitment_active_workflows",
     "Currently running JD workflows",
-)
-
-CANDIDATES_SCREENED = Counter(
-    "recruitment_candidate_screened_total",
-    "Total candidates that completed screening",
-    ["jd_id"],
-)
-
-CANDIDATES_RANKED = Counter(
-    "recruitment_candidate_ranked_total",
-    "Total candidates that were ranked and shortlisted",
-    ["jd_id"],
-)
-
-SCREENING_DURATION = Histogram(
-    "recruitment_screening_duration_seconds",
-    "Time to screen all candidates for a JD",
-    buckets=[5, 10, 30, 60, 120, 300],
-)
-
-RANKING_DURATION = Histogram(
-    "recruitment_ranking_duration_seconds",
-    "Time to rank and shortlist candidates",
-    buckets=[1, 5, 10, 30, 60],
-)
-
-SOURCING_DURATION = Histogram(
-    "recruitment_sourcing_duration_seconds",
-    "Time to complete parallel sourcing across all sources",
-    buckets=[1, 2, 5, 10, 30],
 )

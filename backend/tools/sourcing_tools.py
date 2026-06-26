@@ -15,12 +15,12 @@ from typing import Any, Dict, List, Optional
 import structlog
 from datasets import load_dataset
 
-from backend.core.schemas import (
+from core.schemas import (
     CandidateProfile, SourcePlatform, SourceProfile
 )
-from backend.observability.telemetry import record_tool_call
-from backend.utils.helpers import get_skills, get_employment_history, get_education_details
-from backend.utils.prometheus_metrics import CANDIDATES_SOURCED
+from observability.telemetry import record_tool_call
+from utils.helpers import get_skills, get_employment_history, get_education_details
+from utils.prometheus_metrics import CANDIDATES_SOURCED
 
 logger = structlog.get_logger()
 

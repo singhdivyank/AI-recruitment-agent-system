@@ -27,16 +27,16 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 
-from backend.core.llm_client import LLMClient
-from backend.core.schemas import CandidateProfile, JDParsed
-from backend.db.models import CandidateModel, JDModel
-from backend.observability.telemetry import record_tool_call
-from backend.tools.sourcing_tools import (
+from core.llm_client import LLMClient
+from core.schemas import CandidateProfile, JDParsed
+from db.models import CandidateModel, JDModel
+from observability.telemetry import record_tool_call
+from tools.sourcing_tools import (
     search_linkedin as _search_linkedin,
     search_naukri as _search_naukri,
     search_ats as _search_ats,
 )
-from backend.utils.prometheus_metrics import TOOL_FAILURES
+from utils.prometheus_metrics import TOOL_FAILURES
 
 logger = structlog.get_logger()
 

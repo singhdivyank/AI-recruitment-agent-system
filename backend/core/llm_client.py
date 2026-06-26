@@ -18,8 +18,8 @@ from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 
 import redis.asyncio as aioredis
 
-from backend.core.config import get_settings
-from backend.observability.telemetry import record_llm_usage
+from core.config import get_settings
+from observability.telemetry import record_llm_usage
 
 settings = get_settings()
 logger = structlog.get_logger()

@@ -11,28 +11,30 @@ from typing import Any, Dict, List, Optional
 
 import structlog
 
-from backend.core.schemas import (
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
+from core.schemas import (
     CandidateProfile,
     CandidateStatus, 
     EducationEntry, 
-    EmploymentEntry, 
+    EmploymentEntry,
+    JDCreate, 
+    JDParsed, 
     SourcePlatform, 
     SourceProfile, 
-    WorkflowState
+    WorkflowState,
 )
-from backend.db.models import JDModel
-from backend.core.schemas import JDCreate, JDParsed
-from backend.observability.telemetry import observe_agent, record_tool_call
-from backend.utils.prometheus_metrics import CANDIDATES_SOURCED, SOURCING_DURATION
-from backend.tools.mcp_client import (
+from db.models import JDModel
+from observability.telemetry import observe_agent, record_tool_call
+from utils.prometheus_metrics import CANDIDATES_SOURCED, SOURCING_DURATION
+from tools.mcp_client import (
     MCPCallError,
     ats_search_profiles,
     ats_update_status,
     linkedin_search_profiles,
     naukri_search_profiles
 )
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 logger = structlog.get_logger()
 
