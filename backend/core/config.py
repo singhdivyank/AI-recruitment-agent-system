@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     otel_exporter_otlp_endpoint: str = ""
     otel_service_name: str = ""
     grafana_password: str = ""
-    embedding_model: str = "all-MiniLM-L6-v2"          # 384-dim, fast
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"          # 384-dim, fast
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     linkedin_mcp_url: str = ""
     naukri_mcp_url: str = ""

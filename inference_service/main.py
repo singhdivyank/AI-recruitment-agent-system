@@ -32,9 +32,14 @@ from schemas import (
     RerankRequest, 
     RerankResponse
 )
-from consts import EMBEDDING_MODEL, RERANKER_MODEL, CACHE_DIR
+from consts import get_settings
 
+settings = get_settings()
 logger = structlog.get_logger()
+
+EMBEDDING_MODEL = settings.embedding_model
+RERANKER_MODEL = settings.reranker_model
+CACHE_DIR = settings.cache_dir
 
 # Module-level model holders
 _embedder: Optional[SentenceTransformer] = None
