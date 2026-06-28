@@ -52,11 +52,6 @@ def _dict_to_profile(d: Dict[str, Any]) -> Optional[CandidateProfile]:
             for e in (d.get("employment_history", []))
         ]
         src_name = (d.get("source", "linkedin")).capitalize()
-        try:
-            src_platform = SourcePlatform(src_name)
-        except ValueError:
-            src_platform = SourcePlatform.LINKEDIN
-
         source_profiles = d.get("source_profiles", [])
         parsed_source_profiles = []
         for sp in source_profiles:

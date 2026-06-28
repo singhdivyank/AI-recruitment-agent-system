@@ -146,7 +146,7 @@ class LLMClient:
         agent_name: str = "unknown",
         jd_id: Optional[str] = None,
         use_flash: bool = False,
-    ) -> str:
+    ) -> BaseMessage:
         """
         Make a single LLM call. On retry (attempt > 0), sends only the retry
         prompt — NOT the full prior context — to prevent runaway token spend.
@@ -157,14 +157,12 @@ class LLMClient:
 
         await self._check_guardrails(jd_id, estimated_tokens, use_flash)
 
-        messages: List[BaseMessage] = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_prompt),
-        ]
-
         start = time.monotonic()
         try:
-            response = await model.ainvoke(messages)
+            response = await model.ainvoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=user_prompt),
+            ])
             elapsed = time.monotonic() - start
 
             # Extract token usage (Gemini returns usage_metadata)
@@ -175,11 +173,11 @@ class LLMClient:
 
             await self._record_usage(jd_id, input_tokens, output_tokens, self.estimated_cost)
             record_llm_usage(agent_name, model_name, input_tokens, output_tokens, elapsed, self.estimated_cost)
-            return response.content
+            return response
 
         except CostGuardrailError:
             raise
-        except Exception as exc:
+        except Exception as _:
             elapsed = time.monotonic() - start
             record_llm_usage(agent_name, model_name, 0, 0, elapsed, 0.0, success=False)
             raise
@@ -191,7 +189,7 @@ class LLMClient:
         agent_name: str = "unknown",
         jd_id: Optional[str] = None,
         use_flash: bool = False,
-    ) -> str:
+    ) -> BaseMessage:
         """
         Retry wrapper with exponential backoff. Critically, each retry sends
         the SAME prompt (not appended history) to avoid token explosion.
@@ -240,9 +238,15 @@ class LLMClient:
             use_flash=use_flash,
         )
         # Strip ```json ... ``` if model adds it despite instructions
-        clean = raw.strip()
+        content = raw.content
+        if isinstance(content, str):
+            clean: str = content.strip()
+        if isinstance(content, List):
+            if isinstance(content[0], str):
+                clean: str = clean[0].strip()
+        
         if clean.startswith("```"):
-            clean = "\n".join(clean.split("\n")[1:])
+            clean = "\n".join(clean.split("\n")[1:]).strip()
         if clean.endswith("```"):
-            clean = "\n".join(clean.split("\n")[:-1])
-        return json.loads(clean.strip())
+            clean = "\n".join(clean.split("\n")[:-1]).strip()
+        return json.loads(clean)

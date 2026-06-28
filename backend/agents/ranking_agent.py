@@ -128,13 +128,21 @@ class RankingAgent:
             screening=screening
         )
         try:
-            return await self.llm.call_with_retry(
+            response = await self.llm.call_with_retry(
                 system_prompt=RATIONALE_SYSTEM_PROMPT,
                 user_prompt=user_prompt,
                 agent_name="ranking_agent",
                 jd_id=jd_id,
                 use_flash=True,   # Flash sufficient for rationale generation
             )
+            content = response.content
+            if isinstance(content, str):
+                return content
+            if isinstance(content, List):
+                if isinstance(content[0], str):
+                    return content[0]
+            
+            return str(content)
         except Exception:
             return screening.screening_summary
 
@@ -167,7 +175,7 @@ class RankingAgent:
         async def gen_rationale(item):
             final_score, breakdown, profile, sr = item
             async with sem:
-                rationale = await self._generate_rationale(profile, sr, jd_parsed, jd_id)
+                rationale: str = await self._generate_rationale(profile, sr, jd_parsed, jd_id)
             return final_score, breakdown, profile, sr, rationale
 
         rationale_results = await asyncio.gather(

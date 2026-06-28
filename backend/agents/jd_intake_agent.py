@@ -27,9 +27,9 @@ class JDIntakeAgent:
         self.llm = llm
         self.db = db
     
-    def persist_to_db(self):
-        self.db.add(self.jd_model)
-        self.db.add(self.audit)
+    def persist_to_db(self, jd_model: JDModel, audit_model: AuditModel):
+        self.db.add(jd_model)
+        self.db.add(audit_model)
 
     @observe_agent("jd_intake_agent")
     async def run(self, state: WorkflowState) -> WorkflowState:
@@ -47,7 +47,7 @@ class JDIntakeAgent:
                 jd_id=jd_id,
             )
             jd_parsed = JDParsed(**parsed_dict)
-            self.jd_model = JDModel(
+            jd_model = JDModel(
                 jd_id=jd_id,
                 title=jd_parsed.title,
                 description=jd_parsed.description,
@@ -62,13 +62,13 @@ class JDIntakeAgent:
                 parsed_data=parsed_dict,
                 created_by="system",
             )
-            self.audit = AuditModel(
+            audit_model = AuditModel(
                 jd_id=jd_id,
                 recruiter_id="system",
                 action="JD_CREATED",
                 metadata={"title": jd_parsed.title},
             )
-            self.persist_to_db()
+            self.persist_to_db(jd_model=jd_model, audit_model=audit_model)
             await self.db.flush()
 
             JDS_CREATED.inc()

@@ -21,6 +21,7 @@ import structlog
 
 from mcp import ClientSession
 from mcp.client.sse import sse_client
+from mcp.types import TextContent
 
 from core.config import get_settings
 from core.schemas import MCPCallError
@@ -52,9 +53,9 @@ async def _call_tool(
         if result.isError:
             raise MCPCallError(f"{source_label}/{tool_name} tool error: {result.content}")
 
-        content = result.content
-        if content and hasattr(content[0], "text"):
-            text = content[0].text
+        content = result.content[0]
+        if content and isinstance(content, TextContent):
+            text = content.text
             try:
                 return json.loads(text)
             except json.JSONDecodeError:

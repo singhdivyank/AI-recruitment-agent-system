@@ -32,6 +32,13 @@ import structlog
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from .query_defs import (
+    CREATE_INDEX, 
+    CREATE_TABLE, 
+    EMBEDDING_INGESTION, 
+    EMBEDDING_INGESTION_BATCHES,
+    RETRIEVAL
+)
 from core.config import get_settings
 from core.schemas import CandidateProfile
 from observability.telemetry import record_tool_call
@@ -84,31 +91,11 @@ class RAGPipeline:
     async def ensure_schema(self) -> None:
         async with self._engine.begin() as conn:
             await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-            await conn.execute(text(f"""
-                CREATE TABLE IF NOT EXISTS profile_embeddings (
-                    id               SERIAL PRIMARY KEY,
-                    candidate_id     TEXT NOT NULL UNIQUE,
-                    name             TEXT,
-                    email            TEXT,
-                    location         TEXT,
-                    experience_years FLOAT DEFAULT 0,
-                    skills           TEXT[],
-                    sources          TEXT[],
-                    profile_text     TEXT,
-                    embedding        vector({INDEX_DIMENSION}),
-                    created_at       TIMESTAMPTZ DEFAULT NOW(),
-                    updated_at       TIMESTAMPTZ DEFAULT NOW()
-                )
-            """))
+            await conn.execute(text(CREATE_TABLE.format({"dimensions": INDEX_DIMENSION})))
             result = await conn.execute(text("SELECT COUNT(*) FROM profile_embeddings"))
             row_count = result.scalar() or 0
             if row_count >= IVFFLAT_LISTS:
-                await conn.execute(text("""
-                    CREATE INDEX IF NOT EXISTS profile_embeddings_vector_idx
-                    ON profile_embeddings
-                    USING ivfflat (embedding vector_cosine_ops)
-                    WITH (lists = 50)
-                """))
+                await conn.execute(text(CREATE_INDEX))
         logger.info("pgvector_schema_ready")
 
     def _build_profile_text(self, profile: CandidateProfile) -> str:
@@ -153,27 +140,10 @@ class RAGPipeline:
         try:
             profile_text = self._build_profile_text(profile)
             vectors = await _embed([profile_text])
-            vector = vectors[0]
-            vector_str = f"[{','.join(str(v) for v in vector)}]"
+            vector_str = f"[{','.join(str(v) for v in vectors[0])}]"
 
             async with self._session_factory() as session:
-                await session.execute(text("""
-                    INSERT INTO profile_embeddings
-                        (candidate_id, name, email, location, experience_years,
-                         skills, sources, profile_text, embedding)
-                    VALUES
-                        (:cid, :name, :email, :location, :exp,
-                         :skills, :sources, :profile_text, :embedding::vector)
-                    ON CONFLICT (candidate_id) DO UPDATE SET
-                        name             = EXCLUDED.name,
-                        location         = EXCLUDED.location,
-                        experience_years = EXCLUDED.experience_years,
-                        skills           = EXCLUDED.skills,
-                        sources          = EXCLUDED.sources,
-                        profile_text     = EXCLUDED.profile_text,
-                        embedding        = EXCLUDED.embedding,
-                        updated_at       = NOW()
-                """), {
+                await session.execute(text(EMBEDDING_INGESTION), {
                     "cid":          profile.candidate_id,
                     "name":         profile.name,
                     "email":        profile.email or "",
@@ -208,23 +178,7 @@ class RAGPipeline:
             async with self._session_factory() as session:
                 for profile, vector in zip(batch, vectors):
                     vector_str = f"[{','.join(str(v) for v in vector)}]"
-                    await session.execute(text("""
-                        INSERT INTO profile_embeddings
-                            (candidate_id, name, email, location, experience_years,
-                             skills, sources, profile_text, embedding)
-                        VALUES
-                            (:cid, :name, :email, :location, :exp,
-                             :skills, :sources, :profile_text, :embedding::vector)
-                        ON CONFLICT (candidate_id) DO UPDATE SET
-                            name             = EXCLUDED.name,
-                            location         = EXCLUDED.location,
-                            experience_years = EXCLUDED.experience_years,
-                            skills           = EXCLUDED.skills,
-                            sources          = EXCLUDED.sources,
-                            profile_text     = EXCLUDED.profile_text,
-                            embedding        = EXCLUDED.embedding,
-                            updated_at       = NOW()
-                    """), {
+                    await session.execute(text(EMBEDDING_INGESTION_BATCHES), {
                         "cid":          profile.candidate_id,
                         "name":         profile.name,
                         "email":        profile.email or "",
@@ -246,12 +200,7 @@ class RAGPipeline:
             result = await conn.execute(text("SELECT COUNT(*) FROM profile_embeddings"))
             count = result.scalar() or 0
             if count >= IVFFLAT_LISTS:
-                await conn.execute(text("""
-                    CREATE INDEX IF NOT EXISTS profile_embeddings_vector_idx
-                    ON profile_embeddings
-                    USING ivfflat (embedding vector_cosine_ops)
-                    WITH (lists = 50)
-                """))
+                await conn.execute(text(CREATE_INDEX))
 
     async def retrieve(
         self,
@@ -259,10 +208,10 @@ class RAGPipeline:
         jd_description: str,
         must_have_skills: List[str],
         nice_to_have_skills: List[str],
+        top_k: int = TOP_K_RETRIEVE,
         location: Optional[str] = None,
         min_years: Optional[int] = None,
         max_years: Optional[int] = None,
-        top_k: int = TOP_K_RETRIEVE,
     ) -> List[Dict[str, Any]]:
         start = time.monotonic()
         try:
@@ -288,24 +237,10 @@ class RAGPipeline:
 
             where_clause = ("WHERE " + " AND ".join(filters)) if filters else ""
 
-            sql = text(f"""
-                SELECT
-                    candidate_id,
-                    name,
-                    location,
-                    experience_years,
-                    skills,
-                    sources,
-                    profile_text,
-                    1 - (embedding <=> :query_vector::vector) AS similarity_score
-                FROM profile_embeddings
-                {where_clause}
-                ORDER BY embedding <=> :query_vector::vector
-                LIMIT :top_k
-            """)
-
             async with self._session_factory() as session:
-                result = await session.execute(sql, params)
+                result = await session.execute(text(RETRIEVAL.format(
+                    {"where_clause": where_clause, "top_k": top_k}
+                )), params)
                 rows = result.fetchall()
 
             matches = [

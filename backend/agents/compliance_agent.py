@@ -10,6 +10,7 @@ from typing import List
 
 import structlog
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.llm_client import LLMClient
@@ -48,6 +49,7 @@ class ComplianceAgent:
 
         # Fast rule-based check first
         rule_flags = self._rule_based_check(full_text)
+        llm_flags = []
 
         # LLM deep scan (use flash — cheaper, sufficient for classification)
         try:
@@ -63,7 +65,6 @@ class ComplianceAgent:
         except Exception as exc:
             log.warning("llm_compliance_failed_falling_back_to_rules", error=str(exc))
             passed = len(rule_flags) == 0
-            llm_flags = []
 
         all_flags = list(set(rule_flags + llm_flags))
 
@@ -72,7 +73,6 @@ class ComplianceAgent:
             passed = False
 
         # Update DB
-        from sqlalchemy import select
         stmt = select(JDModel).where(JDModel.jd_id == jd_id)
         result_db = await self.db.execute(stmt)
         jd_model = result_db.scalar_one_or_none()

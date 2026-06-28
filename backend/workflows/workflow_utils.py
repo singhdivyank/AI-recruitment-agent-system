@@ -5,9 +5,10 @@ import structlog
 from langgraph.graph import END, StateGraph
 
 from agents.compliance_agent import ComplianceAgent
+from agents.dedup_agent import DeduplicationAgent
 from agents.jd_intake_agent import JDIntakeAgent
-from agents.normalization_dedup_agents import DeduplicationAgent, NormalizationAgent
-from agents.outreach_closure_agents import OutreachAgent
+from agents.normalization_agent import NormalizationAgent
+from agents.outreach_agent import OutreachAgent
 from agents.ranking_agent import RankingAgent
 from agents.screening_agent import ScreeningAgent
 from agents.sourcing_agent import SourcingAgent
